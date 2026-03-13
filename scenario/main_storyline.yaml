@@ -1,0 +1,886 @@
+# ニートクエスト - メインストーリーライン
+# ニートが勇者として社会復帰するRPG
+
+meta:
+  title: "ニートクエスト"
+  subtitle: "ニートが勇者として社会復帰するRPG"
+  version: "0.1.0"
+  language: "ja"
+  total_chapters: 5
+
+# =============================================================================
+# 第一章：暗い部屋 — すべてはここから始まる
+# =============================================================================
+chapters:
+  - id: chapter_1
+    title: "第一章：暗い部屋"
+    subtitle: "すべてはここから始まる"
+    summary: "主人公の引きこもり生活と、空腹に押されてコンビニへ向かう初めての外出"
+
+    scenes:
+      # --- シーン1-1: 目覚め ---
+      - id: scene_1_1
+        title: "目覚め"
+        location: "自室"
+        time: "昼過ぎ"
+
+        events:
+          - type: narration
+            text: "午後2時。カーテンの隙間から細い光が漏れている。"
+
+          - type: narration
+            text: "散らかった部屋。積み上がったカップ麺の容器。点けっぱなしのモニター。これが2年間の世界のすべてだった。"
+
+          - type: dialogue
+            character: player
+            text: "……今日も何もする気が起きない。"
+
+          - type: narration
+            text: "布団にくるまったまま、スマホを手に取る。SNSのタイムラインには、かつての同級生たちの近況が流れてくる。就職、結婚、旅行——自分とは別の世界の話だ。"
+
+          - type: dialogue
+            character: player
+            text: "……見なきゃよかった。"
+
+          - type: effect
+            name: screen_darken
+            params:
+              duration: 0.5
+
+          - type: narration
+            style: system
+            text: "【ステータス画面が表示される】"
+
+          - type: stat_check
+            description: "現在のステータスを確認"
+            show_stats:
+              - social
+              - confidence
+              - stamina
+              - knowledge
+              - life_skill
+
+      # --- シーン1-2: 母の声 ---
+      - id: scene_1_2
+        title: "母の声"
+        location: "自室（ドア越し）"
+        time: "夕方"
+
+        events:
+          - type: narration
+            text: "夕方。ドアの向こうから物音がする。"
+
+          - type: dialogue
+            character: mother
+            text: "ご飯、ドアの前に置いておくからね。"
+
+          - type: narration
+            text: "返事はしない。いつものことだ。"
+
+          - type: narration
+            text: "しばらくして、足音が遠ざかる。ドアを薄く開けて、トレイを引き入れる。"
+
+          - type: dialogue
+            character: player
+            text: "……ありがとう。"
+
+          - type: narration
+            text: "小さな声は、閉じたドアの向こうには届かない。"
+
+          - type: narration
+            text: "母の作った肉じゃがを食べる。温かい。こんな生活をいつまで続けるんだろう——そんな考えを、ゲームの起動音でかき消す。"
+
+      # --- シーン1-3: 深夜の危機 ---
+      - id: scene_1_3
+        title: "深夜の危機"
+        location: "自室・キッチン"
+        time: "深夜3時"
+
+        events:
+          - type: narration
+            text: "深夜3時。腹が減った。母が置いてくれた夕食はとっくに食べ終わっている。"
+
+          - type: location_change
+            location: "キッチン"
+            transition: "忍び足で部屋を出る"
+
+          - type: narration
+            text: "冷蔵庫を開ける。……何もない。"
+
+          - type: narration
+            text: "棚を探す。カップ麺もストックが切れている。"
+
+          - type: dialogue
+            character: player
+            text: "マジか……。"
+
+          - type: narration
+            text: "財布の中身を確認する。千円札が2枚と小銭が少し。"
+
+          - type: narration
+            style: inner_monologue
+            text: "コンビニ……行くか？　でも、外に出るのは……。深夜3時なら、人はほとんどいないはず。"
+
+          - type: quest_start
+            quest_id: first_outing
+            title: "はじめてのおでかけ"
+            description: "空腹には勝てない。近くのコンビニまで食料を調達せよ"
+            objectives:
+              - "外に出る勇気を出す"
+              - "コンビニで買い物をする"
+              - "無事に家に帰る"
+
+      # --- シーン1-4: 外の空気 ---
+      - id: scene_1_4
+        title: "外の空気"
+        location: "玄関・夜道"
+        time: "深夜3時"
+
+        events:
+          - type: narration
+            text: "玄関のドアに手をかける。心臓が早くなる。"
+
+          - type: dialogue
+            character: player
+            text: "……たかがコンビニだろ。大丈夫。大丈夫だ。"
+
+          - type: effect
+            name: door_open
+            params:
+              duration: 1.0
+
+          - type: narration
+            text: "ドアを開けた瞬間、夜の空気が頬に触れた。冷たくて、広い。"
+
+          - type: location_change
+            location: "夜道"
+            transition: "fade"
+
+          - type: narration
+            text: "街灯がぽつぽつと道を照らしている。虫の声。遠くを走る車の音。世界はまだ動いていた。"
+
+          - type: narration
+            style: inner_monologue
+            text: "2年ぶり……じゃないか。ゴミ出しで玄関先には出てたっけ。でも、こうやって歩くのは久しぶりだ。"
+
+          - type: stat_change
+            character: player
+            changes:
+              stamina: 1
+            description: "外を歩いた！ 体力+1"
+            show_notification: true
+
+      # --- シーン1-5: コンビニ ---
+      - id: scene_1_5
+        title: "コンビニ"
+        location: "コンビニ"
+        time: "深夜3時半"
+
+        events:
+          - type: location_change
+            location: "コンビニ"
+            transition: "自動ドアが開く"
+
+          - type: narration
+            text: "蛍光灯の白い光がまぶしい。店内BGMが静かに流れている。深夜だから客はいない。"
+
+          - type: narration
+            text: "おにぎり、カップ麺、お茶。必要なものをカゴに入れる。手が少し震えている。"
+
+          - type: dialogue
+            character: sato
+            text: "いらっしゃいませー。"
+
+          - type: narration
+            text: "レジに立つ店員——名札には「佐藤」と書いてある——が、気だるそうに、でも嫌味のない声で言った。"
+
+          - type: dialogue
+            character: sato
+            text: "袋いりますか？"
+
+          - type: dialogue
+            character: player
+            text: "……あ、はい。"
+
+          - type: narration
+            text: "声が出た。かすれていたけど、ちゃんと通じた。"
+
+          - type: dialogue
+            character: sato
+            text: "390円です。……はい、ちょうどですね。ありがとうございまーす。"
+
+          - type: narration
+            text: "たったこれだけの会話。でも、心臓がバクバクしている。"
+
+          - type: stat_change
+            character: player
+            changes:
+              social: 1
+              confidence: 1
+            description: "人と会話した！ 社交性+1 自信+1"
+            show_notification: true
+
+          - type: item_get
+            item_id: convenience_bag
+            name: "コンビニの袋"
+            description: "おにぎり2個、カップ麺1個、お茶1本。ささやかな戦利品"
+
+      # --- シーン1-6: 帰り道 ---
+      - id: scene_1_6
+        title: "帰り道"
+        location: "夜道・自室"
+        time: "深夜4時前"
+
+        events:
+          - type: narration
+            text: "帰り道。コンビニの袋を持つ手に、少しだけ達成感がある。"
+
+          - type: narration
+            text: "空を見上げると、星が見えた。部屋の天井しか見ていなかったから、忘れていた。"
+
+          - type: dialogue
+            character: player
+            text: "……外って、こんな感じだったっけ。"
+
+          - type: location_change
+            location: "自室"
+            transition: "fade"
+
+          - type: narration
+            text: "部屋に戻り、おにぎりを食べる。コンビニのおにぎりが、やけにうまい。"
+
+          - type: quest_complete
+            quest_id: first_outing
+            rewards:
+              exp: 10
+              title: "深夜の冒険者"
+
+          - type: achievement
+            id: first_step
+            title: "最初の一歩"
+            description: "2年ぶりに自分の意志で外に出た"
+
+          - type: narration
+            text: "スマホの画面が光る。午前4時。外が少しだけ明るくなり始めている。"
+
+          - type: narration
+            style: inner_monologue
+            text: "……また、行けるかな。"
+
+          - type: narration
+            style: system
+            text: "【第一章「暗い部屋」完】"
+
+  # ===========================================================================
+  # 第二章：外の世界 — 日常を取り戻す
+  # ===========================================================================
+  - id: chapter_2
+    title: "第二章：外の世界"
+    subtitle: "日常を取り戻す"
+    summary: "深夜のコンビニ通いから始まり、少しずつ外出の時間帯が早くなっていく。佐藤との交流、公園の発見、そして人混みでの「社交不安」との戦い"
+
+    scenes:
+      - id: scene_2_1
+        title: "深夜の常連"
+        location: "コンビニ"
+        time: "深夜"
+        summary: "数日後、再びコンビニへ。佐藤に「また来てくれたんですね」と声をかけられる。少しずつ会話が増えていく"
+
+        events:
+          - type: narration
+            text: "あれから3日。また冷蔵庫が空になった。"
+
+          - type: narration
+            style: inner_monologue
+            text: "前は行けた。だから今日も行ける……はず。"
+
+          - type: location_change
+            location: "コンビニ"
+            transition: "fade"
+
+          - type: dialogue
+            character: sato
+            text: "あ、いらっしゃい。この前も来てくれましたよね？"
+
+          - type: narration
+            text: "覚えられていた。少し驚いたけど、嫌な気持ちではなかった。"
+
+          - type: dialogue
+            character: player
+            text: "……はい。"
+
+          - type: dialogue
+            character: sato
+            text: "深夜組っすね、俺も。新作のおにぎり出てますよ、ツナマヨの進化版。"
+
+          - type: stat_change
+            character: player
+            changes:
+              social: 1
+            description: "佐藤との会話が続いた！ 社交性+1"
+            show_notification: true
+
+      - id: scene_2_2
+        title: "昼間への挑戦"
+        location: "自室・近所"
+        time: "午前"
+        summary: "母に「散歩でもしてみたら」と言われる。朝方の静かな時間帯に近所を歩いてみる"
+
+        events:
+          - type: quest_start
+            quest_id: morning_walk
+            title: "朝の散歩"
+            description: "朝の時間帯に外を歩いてみよう"
+            objectives:
+              - "午前中に外に出る"
+              - "近所を10分以上歩く"
+
+      - id: scene_2_3
+        title: "公園のベンチ"
+        location: "公園"
+        time: "午前"
+        summary: "散歩中に小さな公園を発見。ベンチに座ると、意外と居心地がいい。猫が寄ってくる"
+
+        events:
+          - type: location_change
+            location: "公園"
+            transition: "walk"
+
+          - type: narration
+            text: "住宅街の片隅に、小さな公園があった。ブランコと砂場、それにベンチが2つ。平日の午前中、誰もいない。"
+
+          - type: narration
+            text: "ベンチに座る。風が木の葉を揺らしている。こんな穏やかな場所があったのか。"
+
+          - type: narration
+            text: "足元に猫が寄ってきた。茶トラの、のんびりした猫だ。"
+
+          - type: stat_change
+            character: player
+            changes:
+              stamina: 1
+              confidence: 1
+            description: "お気に入りの場所を見つけた！ 体力+1 自信+1"
+            show_notification: true
+
+      - id: scene_2_4
+        title: "スーパーマーケットの壁"
+        location: "スーパーマーケット前"
+        time: "夕方"
+        summary: "母に頼まれてスーパーへ。しかし夕方の混雑を前に足がすくむ。「社交不安」がボスとして出現"
+
+        events:
+          - type: quest_start
+            quest_id: supermarket_challenge
+            title: "買い物代行"
+            description: "母に頼まれた買い物をスーパーで済ませよう"
+            objectives:
+              - "スーパーマーケットに入る"
+              - "卵と牛乳を買う"
+
+          - type: battle
+            enemy_id: social_anxiety
+            type: mental
+            description: "スーパーの入り口で、人混みが壁のように立ちはだかる。周囲の視線が刺さるような感覚——「社交不安」が姿を現す"
+
+          - type: narration
+            text: "心臓が早鳴る。息が浅くなる。目の前が少しぼやける。"
+
+          - type: narration
+            style: inner_monologue
+            text: "落ち着け……。あの本に書いてあった。深く吸って、ゆっくり吐く。4秒吸って、7秒止めて、8秒吐く。"
+
+          - type: narration
+            text: "呼吸が整っていく。影が薄れる。人混みは——ただの人混みだ。誰も自分のことなんか見ていない。"
+
+          - type: quest_complete
+            quest_id: supermarket_challenge
+            rewards:
+              exp: 30
+              title: "買い物マスター"
+
+          - type: stat_change
+            character: player
+            changes:
+              social: 2
+              confidence: 2
+              life_skill: 1
+            description: "社交不安を乗り越えた！ 社交性+2 自信+2 生活力+1"
+            show_notification: true
+
+          - type: narration
+            style: system
+            text: "【第二章「外の世界」完】"
+
+  # ===========================================================================
+  # 第三章：はじめの一歩 — 社会との接点
+  # ===========================================================================
+  - id: chapter_3
+    title: "第三章：はじめの一歩"
+    subtitle: "社会との接点"
+    summary: "ハローワークへの訪問、相談員・田中との出会い、図書館で資格の勉強を始める。電話をかける・履歴書を書くなどの社会スキルを獲得していく"
+
+    scenes:
+      - id: scene_3_1
+        title: "母のパンフレット"
+        location: "自室"
+        time: "朝"
+        summary: "机の上にハローワークのパンフレットが置いてある。母が黙って置いたものだ。捨てようとするが、少し迷う"
+
+        events:
+          - type: narration
+            text: "ある朝、机の上に見慣れないパンフレットが置いてあった。"
+
+          - type: narration
+            text: "「若者サポートステーション」——ハローワークの相談窓口案内。母が置いたのだろう。"
+
+          - type: dialogue
+            character: player
+            text: "……。"
+
+          - type: narration
+            style: inner_monologue
+            text: "以前なら、見もせずにゴミ箱に入れていた。でも今は——ほんの少しだけ、気になる自分がいる。"
+
+      - id: scene_3_2
+        title: "ハローワーク"
+        location: "ハローワーク"
+        time: "午前"
+        summary: "意を決してハローワークへ。入り口で「自己否定」のボスが出現。田中さんが中から声をかけてくれて、なんとか入ることができる"
+
+        events:
+          - type: quest_start
+            quest_id: visit_hellowork
+            title: "ハローワークへ行こう"
+            description: "ハローワークの若者サポート窓口を訪ねよう"
+            objectives:
+              - "ハローワークに行く"
+              - "受付で相談の予約をする"
+              - "相談員と話す"
+
+          - type: battle
+            enemy_id: self_doubt
+            type: mental
+            description: "ハローワークの入り口。ガラスに映る自分の姿から「自己否定」が語りかけてくる。「お前なんかが来る場所じゃない」"
+
+          - type: dialogue
+            character: tanaka
+            text: "あの、もしかして相談に来られましたか？　中、涼しいですよ。"
+
+          - type: narration
+            text: "建物の中から、穏やかな声の男性が出てきた。名札には「田中」とある。"
+
+          - type: dialogue
+            character: tanaka
+            text: "俺も昔、このドアの前で30分立ってたことあるんですよ。入るの、勇気いりますよね。"
+
+          - type: stat_change
+            character: player
+            changes:
+              confidence: 2
+              social: 1
+            description: "田中さんと出会った！ 自信+2 社交性+1"
+            show_notification: true
+
+      - id: scene_3_3
+        title: "田中さんの過去"
+        location: "ハローワーク相談室"
+        time: "午前"
+        summary: "田中さんが自身のニート経験を語る。「焦らなくていい。ここに来れたことがもうすごい」という言葉に救われる"
+
+        events:
+          - type: dialogue
+            character: tanaka
+            text: "俺ね、22歳から25歳まで3年間、ほぼ家から出なかったんです。"
+
+          - type: dialogue
+            character: player
+            text: "え……。"
+
+          - type: dialogue
+            character: tanaka
+            text: "だから気持ちはわかるつもりです。焦らなくていい。今日ここに来れたこと、それだけでもう十分すごいんですよ。"
+
+      - id: scene_3_4
+        title: "図書館デビュー"
+        location: "図書館"
+        time: "午後"
+        summary: "田中さんに勧められて図書館へ。図書カードを作り、資格の参考書を借りる。静かな居場所が増える"
+
+        events:
+          - type: quest_start
+            quest_id: library_card
+            title: "図書館カードを作ろう"
+            description: "図書館で利用カードを作り、本を借りてみよう"
+            objectives:
+              - "図書館に行く"
+              - "利用カードを作る"
+              - "1冊借りる"
+
+          - type: stat_change
+            character: player
+            changes:
+              knowledge: 2
+              life_skill: 1
+            description: "新しい居場所を見つけた！ 知識+2 生活力+1"
+            show_notification: true
+
+      - id: scene_3_5
+        title: "はじめての電話"
+        location: "自室"
+        time: "午前"
+        summary: "ハローワークの次回予約を電話でする。受話器を持つ手が震えるが、なんとかやり遂げる"
+
+        events:
+          - type: quest_start
+            quest_id: first_phone_call
+            title: "電話をかけよう"
+            description: "ハローワークに電話して次回の予約を取ろう"
+            objectives:
+              - "電話番号を確認する"
+              - "電話をかける"
+              - "予約日時を伝える"
+
+          - type: narration
+            text: "スマホを持つ手が震える。通話ボタンを押すまで15分かかった。"
+
+          - type: narration
+            text: "コール音が3回。「はい、ハローワーク○○です」——声が出た。かすれていたけど、ちゃんと伝わった。"
+
+          - type: stat_change
+            character: player
+            changes:
+              social: 2
+              confidence: 1
+              life_skill: 1
+            description: "電話スキル獲得！ 社交性+2 自信+1 生活力+1"
+            show_notification: true
+
+          - type: achievement
+            id: phone_skill
+            title: "電話の勇者"
+            description: "自分から電話をかけることができた"
+
+          - type: narration
+            style: system
+            text: "【第三章「はじめの一歩」完】"
+
+  # ===========================================================================
+  # 第四章：仲間たち — 一人じゃない
+  # ===========================================================================
+  - id: chapter_4
+    title: "第四章：仲間たち"
+    subtitle: "一人じゃない"
+    summary: "社会復帰支援グループに参加し、ゆきや大輔と出会う。コンビニでアルバイトを始める。失敗と回復を経験し、「過去のトラウマ」と仲間の力で向き合う"
+
+    scenes:
+      - id: scene_4_1
+        title: "支援グループ"
+        location: "コミュニティセンター"
+        time: "午後"
+        summary: "田中さんの紹介で社会復帰支援グループに参加。同じ境遇の仲間——ゆきと大輔に出会う。最初は緊張するが、共感できる仲間の存在に安心する"
+
+        events:
+          - type: quest_start
+            quest_id: join_group
+            title: "支援グループに参加しよう"
+            description: "田中さんに紹介された社会復帰支援グループに参加してみよう"
+            objectives:
+              - "コミュニティセンターに行く"
+              - "自己紹介をする"
+              - "最後まで参加する"
+
+          - type: narration
+            text: "コミュニティセンターの一室。パイプ椅子が円形に並んでいる。参加者は自分を入れて5人。"
+
+          - type: dialogue
+            character: yuki
+            text: "……あ、はじめまして。ゆき、です。"
+
+          - type: dialogue
+            character: daisuke
+            text: "大輔です。まあ、気楽にやりましょう。"
+
+          - type: stat_change
+            character: player
+            changes:
+              social: 2
+              confidence: 1
+            description: "仲間ができた！ 社交性+2 自信+1"
+            show_notification: true
+
+      - id: scene_4_2
+        title: "コンビニバイト"
+        location: "コンビニ"
+        time: "日中"
+        summary: "佐藤の紹介でコンビニのアルバイトを始める。最初は失敗だらけだが、佐藤に助けられながら少しずつ慣れていく"
+
+        events:
+          - type: quest_start
+            quest_id: part_time_job
+            title: "アルバイトを始めよう"
+            description: "佐藤に紹介してもらったコンビニでアルバイトを始めよう"
+            objectives:
+              - "面接を受ける"
+              - "初出勤を乗り越える"
+              - "1週間続ける"
+
+          - type: dialogue
+            character: sato
+            text: "うちの店、人手足りないんすよ。よかったらどうっすか？　店長にはもう話してあるんで。"
+
+          - type: stat_change
+            character: player
+            changes:
+              social: 2
+              life_skill: 3
+              stamina: 2
+            description: "アルバイト開始！ 社交性+2 生活力+3 体力+2"
+            show_notification: true
+
+      - id: scene_4_3
+        title: "母の誕生日"
+        location: "家"
+        time: "夜"
+        summary: "初めてのバイト代で母に誕生日プレゼントを買う。「ありがとう」と言えた"
+
+        events:
+          - type: narration
+            text: "初めてのバイト代。封筒に入った給与明細を見つめる。自分で稼いだお金だ。"
+
+          - type: narration
+            text: "カレンダーを見る。来週は母の誕生日だ。"
+
+          - type: quest_start
+            quest_id: mothers_birthday
+            title: "母への贈り物"
+            description: "初めてのバイト代で母に誕生日プレゼントを買おう"
+            objectives:
+              - "プレゼントを選ぶ"
+              - "母に渡す"
+
+          - type: dialogue
+            character: player
+            text: "……お母さん、これ。誕生日おめでとう。あと……いつもありがとう。"
+
+          - type: dialogue
+            character: mother
+            text: "——ありがとう。……ありがとうね。"
+
+          - type: narration
+            text: "母の目が潤んでいた。言葉にならない何かが、二人の間に流れた。"
+
+          - type: stat_change
+            character: player
+            changes:
+              confidence: 2
+              social: 1
+            description: "感謝を伝えられた！ 自信+2 社交性+1"
+            show_notification: true
+
+      - id: scene_4_4
+        title: "過去との対峙"
+        location: "精神世界"
+        time: "-"
+        summary: "大学時代のフラッシュバック。なぜ引きこもりになったのかを思い出す。「過去のトラウマ」とのボス戦。支援グループの仲間たちの支えで乗り越える"
+
+        events:
+          - type: battle
+            enemy_id: past_trauma
+            type: mental
+            description: "大学の教室。レポートの山。「なんでこんなこともできないの？」という声。あの日の記憶が蘇る——「過去のトラウマ」との戦い"
+
+          - type: narration
+            text: "フラッシュバック。大学の教室。周りはみんな当たり前にできていることが、自分にはできなかった。"
+
+          - type: narration
+            text: "でも——今は違う。"
+
+          - type: dialogue
+            character: yuki
+            text: "一人で抱え込まなくていいんだよ。"
+
+          - type: dialogue
+            character: daisuke
+            text: "過去は変えられない。でも、これからは選べる。"
+
+          - type: stat_change
+            character: player
+            changes:
+              confidence: 3
+            description: "過去と向き合った！ 自信+3"
+            show_notification: true
+
+          - type: achievement
+            id: face_the_past
+            title: "過去を超えて"
+            description: "過去のトラウマと向き合い、仲間の支えで乗り越えた"
+
+          - type: narration
+            style: system
+            text: "【第四章「仲間たち」完】"
+
+  # ===========================================================================
+  # 第五章：勇者の帰還 — 新しい朝
+  # ===========================================================================
+  - id: chapter_5
+    title: "第五章：勇者の帰還"
+    subtitle: "新しい朝"
+    summary: "就職活動に挑戦。履歴書作成、面接準備、そして面接本番。「未来への恐怖」は倒す敵ではなく、自ら踏み出す扉。社会復帰を果たし、新しい日常が始まる"
+
+    scenes:
+      - id: scene_5_1
+        title: "履歴書"
+        location: "図書館"
+        time: "午後"
+        summary: "田中さんと一緒に履歴書を書く。空白期間に何を書くか悩むが、この数ヶ月の経験を素直に書く"
+
+        events:
+          - type: quest_start
+            quest_id: write_resume
+            title: "履歴書を書こう"
+            description: "田中さんのサポートを受けながら履歴書を完成させよう"
+            objectives:
+              - "履歴書のフォーマットを入手する"
+              - "田中さんと相談しながら内容を書く"
+              - "完成させる"
+
+          - type: dialogue
+            character: tanaka
+            text: "空白期間、正直に書いていいんですよ。その間にあなたが何を考え、どう変わったか。それが大事なんです。"
+
+          - type: stat_change
+            character: player
+            changes:
+              life_skill: 2
+              knowledge: 1
+            description: "履歴書完成！ 生活力+2 知識+1"
+            show_notification: true
+
+      - id: scene_5_2
+        title: "面接準備"
+        location: "コミュニティセンター"
+        time: "午後"
+        summary: "支援グループで模擬面接。ゆきが面接官役、大輔がアドバイス役。緊張するが、本番への準備が整う"
+
+        events:
+          - type: quest_start
+            quest_id: interview_prep
+            title: "面接の練習"
+            description: "支援グループの仲間と模擬面接をしよう"
+            objectives:
+              - "模擬面接を受ける"
+              - "フィードバックをもらう"
+              - "改善点を練習する"
+
+          - type: dialogue
+            character: daisuke
+            text: "声、もう少しだけ大きくてもいいかもな。内容はばっちりだよ。"
+
+          - type: dialogue
+            character: yuki
+            text: "大丈夫。あなたなら絶対できるよ。"
+
+          - type: stat_change
+            character: player
+            changes:
+              social: 2
+              confidence: 2
+            description: "面接準備完了！ 社交性+2 自信+2"
+            show_notification: true
+
+      - id: scene_5_3
+        title: "扉の前"
+        location: "オフィスビル前"
+        time: "午前"
+        summary: "面接当日。ビルの前で最後のボス「未来への恐怖」と向き合う。これは倒す敵ではない——自ら扉を開けて進むことで克服する"
+
+        events:
+          - type: narration
+            text: "面接当日。オフィスビルの前に立つ。"
+
+          - type: battle
+            enemy_id: fear_of_future
+            type: mental
+            description: "目の前に巨大な扉がそびえ立つ。開けた先には何が待っているかわからない。「未来への恐怖」——最後の壁"
+
+          - type: narration
+            style: inner_monologue
+            text: "怖い。正直、めちゃくちゃ怖い。でも——"
+
+          - type: narration
+            style: inner_monologue
+            text: "深夜のコンビニに行ったあの夜。佐藤さんとの会話。田中さんの言葉。ゆきと大輔。母の涙。"
+
+          - type: narration
+            style: inner_monologue
+            text: "全部、怖かった。でも全部、やってよかった。"
+
+          - type: dialogue
+            character: player
+            text: "——行こう。"
+
+          - type: narration
+            text: "自分の足で、扉を開けた。"
+
+          - type: stat_change
+            character: player
+            changes:
+              confidence: 3
+              social: 1
+            description: "未来への扉を開いた！ 自信+3 社交性+1"
+            show_notification: true
+
+      - id: scene_5_4
+        title: "新しい朝"
+        location: "自室・玄関"
+        time: "朝"
+        summary: "エピローグ。朝、目覚まし時計で起きる。きれいに片付いた部屋。カーテンを開けると朝日が差し込む。母と一緒に朝食を食べ、「行ってきます」と家を出る"
+
+        events:
+          - type: narration
+            text: "朝7時。目覚まし時計が鳴る。"
+
+          - type: narration
+            text: "カーテンを開ける。朝日が部屋いっぱいに差し込んだ。"
+
+          - type: narration
+            text: "きれいに片付いた部屋。本棚には図書館で借りた本と、資格の参考書。壁にはゆきが描いてくれた似顔絵。"
+
+          - type: location_change
+            location: "キッチン"
+            transition: "walk"
+
+          - type: dialogue
+            character: mother
+            text: "おはよう。今日のお弁当、卵焼き入れておいたからね。"
+
+          - type: dialogue
+            character: player
+            text: "ありがとう、お母さん。……行ってきます。"
+
+          - type: dialogue
+            character: mother
+            text: "行ってらっしゃい。"
+
+          - type: narration
+            text: "玄関のドアを開ける。あの深夜とは違う、明るい光が待っていた。"
+
+          - type: narration
+            text: "一歩、踏み出す。"
+
+          - type: narration
+            text: "——これは終わりじゃない。新しい冒険の、始まりだ。"
+
+          - type: achievement
+            id: heros_return
+            title: "勇者の帰還"
+            description: "社会復帰を果たした。でも本当の冒険はこれからだ"
+
+          - type: narration
+            style: system
+            text: "【第五章「勇者の帰還」完】"
+
+          - type: narration
+            style: system
+            text: "【ニートクエスト — 完 —】"

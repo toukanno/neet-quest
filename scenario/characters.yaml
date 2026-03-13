@@ -1,0 +1,86 @@
+# ニートクエスト - キャラクター定義
+# 主人公の名前はプレイヤーが自由に設定可能（{player_name} で参照）
+
+protagonist:
+  id: player
+  name: "{player_name}"
+  age: 22
+  role: protagonist
+  background: "大学2年で中退。将来への漠然とした不安と無気力から、徐々に外出しなくなり2年間ひきこもり生活を送っている"
+  personality: "内向的だが根は優しい。ゲームとネットの知識は豊富"
+  initial_stats:
+    social: 1
+    confidence: 1
+    stamina: 3
+    knowledge: 5
+    life_skill: 1
+
+supporting_characters:
+  - id: mother
+    name: "母"
+    age: 50
+    role: supporting
+    background: "夫と離婚後、パートで生計を立てている。息子の将来を心配しつつも、無理強いはしない"
+    personality: "心配性だが忍耐強く、息子を信じている"
+    first_appearance: chapter_1
+
+  - id: sato
+    name: "佐藤"
+    reading: "さとう"
+    age: 28
+    role: supporting
+    background: "近所のコンビニ店員。フリーターをしながらバンド活動の夢を追っている"
+    personality: "明るく気さく。深夜の常連客のことを自然と覚えてしまうタイプ"
+    first_appearance: chapter_1
+
+  - id: tanaka
+    name: "田中"
+    reading: "たなか"
+    age: 35
+    role: supporting
+    background: "ハローワークの就職支援相談員。自身も20代前半に3年間のニート経験がある"
+    personality: "穏やかで忍耐強い。説教はせず、相手のペースを尊重する"
+    first_appearance: chapter_3
+
+  - id: yuki
+    name: "ゆき"
+    age: 19
+    role: party_member
+    background: "高校中退。対人恐怖症から回復中。社会復帰支援グループで出会う"
+    personality: "人見知りだが、心を開いた相手にはよく話す。絵を描くのが得意"
+    first_appearance: chapter_4
+
+  - id: daisuke
+    name: "大輔"
+    reading: "だいすけ"
+    age: 25
+    role: party_member
+    background: "元システムエンジニア。過労で体調を崩し退職後、引きこもりに。IT知識が豊富"
+    personality: "論理的で冷静。口数は少ないが的確なアドバイスをくれる"
+    first_appearance: chapter_4
+
+# ボスキャラクター（心理的障壁の具現化）
+bosses:
+  - id: social_anxiety
+    name: "社交不安"
+    chapter: chapter_2
+    description: "人混みの中で姿を現す黒い影。周囲の視線が槍のように突き刺さる感覚を具現化した存在"
+    weakness: "深呼吸の技（自室で見つけた自己啓発本から習得）"
+
+  - id: self_doubt
+    name: "自己否定"
+    chapter: chapter_3
+    description: "鏡の中から現れる、もう一人の自分。「お前なんかに何ができる」と囁き続ける"
+    weakness: "田中さんの言葉と、ここまで来た自分の実績"
+
+  - id: past_trauma
+    name: "過去のトラウマ"
+    chapter: chapter_4
+    description: "大学時代のフラッシュバック。教室、レポート、周囲の笑い声が渦巻く"
+    weakness: "仲間たちとの連携技（一人じゃないと気づくこと）"
+
+  - id: fear_of_future
+    name: "未来への恐怖"
+    chapter: chapter_5
+    description: "真っ白な空間に浮かぶ巨大な扉。開けた先が見えない恐怖そのもの"
+    weakness: "倒す敵ではない。自らの意志で扉を開けて踏み出すことで克服する"

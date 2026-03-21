@@ -5,7 +5,7 @@ import { ITEMS } from "@/data/items";
 export function InventoryScreen() {
   const navigate = useNavigate();
   const inventory = useGameStore((s) => s.inventory);
-  const useItem = useGameStore((s) => s.useItem);
+  const consumeItem = useGameStore((s) => s.useItem);
   const equipItem = useGameStore((s) => s.equipItem);
   const gold = useGameStore((s) => s.gold);
 
@@ -13,7 +13,7 @@ export function InventoryScreen() {
     const item = ITEMS[itemId];
     if (!item) return;
     if (item.type === "consumable") {
-      useItem(itemId);
+      consumeItem(itemId);
     } else if (item.type === "equipment") {
       equipItem(itemId);
     }

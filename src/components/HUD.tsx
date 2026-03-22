@@ -4,6 +4,7 @@ export function HUD() {
   const player = useGameStore((s) => s.player);
   const gold = useGameStore((s) => s.gold);
   const socialPoints = useGameStore((s) => s.socialPoints);
+  const day = useGameStore((s) => s.day);
 
   return (
     <div className="hud">
@@ -47,6 +48,7 @@ export function HUD() {
         </div>
       </div>
       <div className="hud__right">
+        <span className="hud__day">Day {day}</span>
         <span style={{ color: "var(--gold)" }}>{gold}G</span>
         <span style={{ color: "var(--social-bar)" }}>&#x2764; {socialPoints}</span>
       </div>
@@ -98,6 +100,15 @@ export function HUD() {
           display: flex;
           gap: 0.8rem;
           font-size: 0.8rem;
+          align-items: center;
+        }
+        .hud__day {
+          color: var(--accent);
+          font-weight: 700;
+          background: var(--bg-tertiary);
+          padding: 0.1rem 0.4rem;
+          border-radius: 4px;
+          font-size: 0.7rem;
         }
       `}</style>
     </div>

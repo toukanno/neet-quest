@@ -1021,6 +1021,20 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   // Tutorial
   advanceTutorial: () =>
-    set((state) => ({ tutorialStep: state.tutorialStep + 1 })),
-  skipTutorial: () => set({ tutorialStep: 0 }),
+    set((state) => {
+      const nextStep = state.tutorialStep + 1;
+      // 5ステップ完了後は showTutorial を false にして次回から非表示
+      if (nextStep > 5) {
+        const newSettings = { ...state.settings, showTutorial: false };
+        localStorage.setItem("neetquest_settings", JSON.stringify(newSettings));
+        return { tutorialStep: 0, settings: newSettings };
+      }
+      return { tutorialStep: nextStep };
+    }),
+  skipTutorial: () => {
+    const state = get();
+    const newSettings = { ...state.settings, showTutorial: false };
+    localStorage.setItem("neetquest_settings", JSON.stringify(newSettings));
+    set({ tutorialStep: 0, settings: newSettings });
+  },
 }));

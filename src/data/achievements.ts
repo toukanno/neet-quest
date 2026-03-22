@@ -1,0 +1,88 @@
+import type { Achievement } from "@/types/game";
+
+export const ACHIEVEMENTS: Record<string, Achievement> = {
+  first_step: {
+    id: "first_step",
+    name: "はじめの一歩",
+    description: "部屋から出た",
+    icon: "\u{1F6B6}",
+    condition: { type: "maps_visited", value: 2 },
+  },
+  level_5: {
+    id: "level_5",
+    name: "見習い冒険者",
+    description: "レベル5に到達",
+    icon: "\u{2B50}",
+    condition: { type: "level", value: 5 },
+  },
+  level_10: {
+    id: "level_10",
+    name: "一人前の勇者",
+    description: "レベル10に到達",
+    icon: "\u{1F31F}",
+    condition: { type: "level", value: 10 },
+  },
+  rich: {
+    id: "rich",
+    name: "貯金の達人",
+    description: "所持金1000Gを達成",
+    icon: "\u{1F4B0}",
+    condition: { type: "gold", value: 1000 },
+  },
+  social_beginner: {
+    id: "social_beginner",
+    name: "散歩できるニート",
+    description: "社会復帰度20ポイント達成",
+    icon: "\u{1F33F}",
+    condition: { type: "social_points", value: 20 },
+  },
+  social_worker: {
+    id: "social_worker",
+    name: "バイト戦士",
+    description: "社会復帰度50ポイント達成",
+    icon: "\u{1F4BC}",
+    condition: { type: "social_points", value: 50 },
+  },
+  social_master: {
+    id: "social_master",
+    name: "社会人",
+    description: "社会復帰度200ポイント達成",
+    icon: "\u{1F451}",
+    condition: { type: "social_points", value: 200 },
+  },
+  quest_first: {
+    id: "quest_first",
+    name: "はじめてのクリア",
+    description: "クエストを1つ完了",
+    icon: "\u{2705}",
+    condition: { type: "quests_completed", value: 1 },
+  },
+  quest_master: {
+    id: "quest_master",
+    name: "クエストマスター",
+    description: "クエストを5つ完了",
+    icon: "\u{1F3C6}",
+    condition: { type: "quests_completed", value: 5 },
+  },
+  monster_hunter: {
+    id: "monster_hunter",
+    name: "モンスターハンター",
+    description: "敵を20体倒した",
+    icon: "\u{2694}",
+    condition: { type: "enemies_defeated", value: 20 },
+  },
+  explorer: {
+    id: "explorer",
+    name: "冒険家",
+    description: "全マップを訪問した",
+    icon: "\u{1F5FA}",
+    condition: { type: "maps_visited", value: 6 },
+  },
+  collector: {
+    id: "collector",
+    name: "アイテムコレクター",
+    description: "10種類のアイテムを入手",
+    icon: "\u{1F392}",
+    condition: { type: "items_collected", value: 10 },
+  },
+};

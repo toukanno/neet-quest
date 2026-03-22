@@ -5,6 +5,7 @@ import { MapView } from "@/components/MapView";
 import { DialogueBox } from "@/components/DialogueBox";
 import { HUD } from "@/components/HUD";
 import { MAPS } from "@/data/maps";
+import { SHOPS } from "@/data/shops";
 
 export function GameScreen() {
   const navigate = useNavigate();
@@ -13,6 +14,10 @@ export function GameScreen() {
   const interact = useGameStore((s) => s.interact);
   const currentDialogue = useGameStore((s) => s.currentDialogue);
   const currentMapId = useGameStore((s) => s.currentMapId);
+  const openShop = useGameStore((s) => s.openShop);
+  const day = useGameStore((s) => s.day);
+
+  const hasShop = currentMapId in SHOPS;
 
   useEffect(() => {
     if (!gameStarted) {
@@ -77,8 +82,25 @@ export function GameScreen() {
 
       <div className="game-screen__main">
         <div className="game-screen__map-area">
-          <div className="game-screen__map-name">{map?.name ?? ""}</div>
+          <div className="game-screen__map-name">
+            {map?.name ?? ""}
+            <span style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginLeft: "0.5rem" }}>
+              {day}日目
+            </span>
+          </div>
           <MapView />
+          {hasShop && (
+            <button
+              className="btn btn--small"
+              style={{ marginTop: "0.5rem" }}
+              onClick={() => {
+                openShop(currentMapId);
+                navigate("/shop");
+              }}
+            >
+              ショップ
+            </button>
+          )}
         </div>
 
         <div className="game-screen__controls">
@@ -106,6 +128,12 @@ export function GameScreen() {
         </button>
         <button className="btn btn--small" onClick={() => navigate("/save")}>
           セーブ
+        </button>
+        <button className="btn btn--small" onClick={() => navigate("/achievements")}>
+          実績
+        </button>
+        <button className="btn btn--small" onClick={() => navigate("/settings")}>
+          設定
         </button>
       </div>
 

@@ -159,4 +159,31 @@ export interface SaveData {
   playerPosition: Position;
   playTime: number;
   chapter: number;
+  day: number;
+  unlockedAchievements: string[];
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  condition: AchievementCondition;
+}
+
+export interface AchievementCondition {
+  type: "level" | "social_points" | "gold" | "quests_completed" | "enemies_defeated" | "maps_visited" | "items_collected";
+  value: number;
+}
+
+export interface GameSettings {
+  bgmVolume: number;
+  seVolume: number;
+  textSpeed: "slow" | "normal" | "fast";
+  showTutorial: boolean;
+}
+
+export interface ShopInventory {
+  itemId: string;
+  stock: number;
 }

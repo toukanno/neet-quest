@@ -7,9 +7,15 @@ import { StatusScreen } from "@/screens/StatusScreen";
 import { InventoryScreen } from "@/screens/InventoryScreen";
 import { QuestScreen } from "@/screens/QuestScreen";
 import { SaveLoadScreen } from "@/screens/SaveLoadScreen";
+import { SettingsScreen } from "@/screens/SettingsScreen";
+import { ShopScreen } from "@/screens/ShopScreen";
+import { AchievementsScreen } from "@/screens/AchievementsScreen";
+import { TutorialOverlay } from "@/components/TutorialOverlay";
+import { AchievementToast } from "@/components/AchievementToast";
 
 export function App() {
   const battle = useGameStore((s) => s.battle);
+  const tutorialStep = useGameStore((s) => s.tutorialStep);
 
   return (
     <div className="app">
@@ -23,9 +29,14 @@ export function App() {
           <Route path="/inventory" element={<InventoryScreen />} />
           <Route path="/quests" element={<QuestScreen />} />
           <Route path="/save" element={<SaveLoadScreen />} />
+          <Route path="/settings" element={<SettingsScreen />} />
+          <Route path="/shop" element={<ShopScreen />} />
+          <Route path="/achievements" element={<AchievementsScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       )}
+      {tutorialStep > 0 && <TutorialOverlay />}
+      <AchievementToast />
     </div>
   );
 }

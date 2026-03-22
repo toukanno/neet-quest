@@ -52,6 +52,18 @@ export function TitleScreen() {
           >
             セーブデータ
           </button>
+          <button
+            className="btn title-btn"
+            onClick={() => navigate("/achievements")}
+          >
+            実績
+          </button>
+          <button
+            className="btn title-btn"
+            onClick={() => navigate("/settings")}
+          >
+            設定
+          </button>
         </div>
 
         <p className="title-screen__footer">

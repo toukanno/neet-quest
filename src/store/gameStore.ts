@@ -7,12 +7,15 @@ import type {
   SaveData,
   QuestObjective,
   Dialogue,
+  GameSettings,
 } from "@/types/game";
 import { ITEMS } from "@/data/items";
 import { SKILLS } from "@/data/skills";
 import { QUESTS } from "@/data/quests";
 import { MAPS } from "@/data/maps";
 import { ENEMIES } from "@/data/enemies";
+import { ACHIEVEMENTS } from "@/data/achievements";
+import { SHOPS } from "@/data/shops";
 
 interface InventoryItem {
   itemId: string;
@@ -46,6 +49,27 @@ interface GameState {
   chapter: number;
   playTime: number;
   gameStarted: boolean;
+
+  // Time
+  day: number;
+
+  // Achievements
+  unlockedAchievements: string[];
+  lastAchievement: string | null;
+
+  // Stats tracking
+  enemiesDefeated: number;
+  mapsVisited: string[];
+  itemsCollected: string[];
+
+  // Settings
+  settings: GameSettings;
+
+  // Shop
+  currentShopId: string | null;
+
+  // Tutorial
+  tutorialStep: number;
 
   // Actions - Player
   initNewGame: () => void;
@@ -92,6 +116,26 @@ interface GameState {
 
   // Actions - Social Points
   addSocialPoints: (amount: number) => void;
+
+  // Actions - Time
+  advanceDay: () => void;
+
+  // Actions - Achievements
+  checkAchievements: () => void;
+  dismissAchievement: () => void;
+
+  // Actions - Settings
+  updateSettings: (settings: Partial<GameSettings>) => void;
+
+  // Actions - Shop
+  openShop: (shopId: string) => void;
+  closeShop: () => void;
+  buyItem: (itemId: string) => void;
+  sellItem: (itemId: string) => void;
+
+  // Actions - Tutorial
+  advanceTutorial: () => void;
+  skipTutorial: () => void;
 }
 
 function createDefaultPlayer(): Character {
@@ -112,6 +156,14 @@ function createDefaultPlayer(): Character {
     equipment: { weapon: null, armor: null, accessory: null },
     sprite: "hero",
   };
+}
+
+function loadSettings(): GameSettings {
+  try {
+    const saved = localStorage.getItem("neetquest_settings");
+    if (saved) return JSON.parse(saved);
+  } catch { /* use defaults */ }
+  return { bgmVolume: 70, seVolume: 80, textSpeed: "normal", showTutorial: true };
 }
 
 function calcExpToNext(level: number): number {
@@ -144,8 +196,18 @@ export const useGameStore = create<GameState>((set, get) => ({
   chapter: 1,
   playTime: 0,
   gameStarted: false,
+  day: 1,
+  unlockedAchievements: [],
+  lastAchievement: null,
+  enemiesDefeated: 0,
+  mapsVisited: ["my_room"],
+  itemsCollected: ["cup_noodle", "wooden_sword", "hoodie"],
+  settings: loadSettings(),
+  currentShopId: null,
+  tutorialStep: 0,
 
-  initNewGame: () =>
+  initNewGame: () => {
+    const showTutorial = get().settings.showTutorial;
     set({
       player: createDefaultPlayer(),
       party: [],
@@ -166,7 +228,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       chapter: 1,
       playTime: 0,
       gameStarted: true,
-    }),
+      day: 1,
+      unlockedAchievements: [],
+      lastAchievement: null,
+      enemiesDefeated: 0,
+      mapsVisited: ["my_room"],
+      itemsCollected: ["cup_noodle", "wooden_sword", "hoodie"],
+      currentShopId: null,
+      tutorialStep: showTutorial ? 1 : 0,
+    });
+  },
 
   gainExp: (amount) =>
     set((state) => {
@@ -227,14 +298,18 @@ export const useGameStore = create<GameState>((set, get) => ({
   addItem: (itemId, count = 1) =>
     set((state) => {
       const existing = state.inventory.find((i) => i.itemId === itemId);
+      const newCollected = state.itemsCollected.includes(itemId)
+        ? state.itemsCollected
+        : [...state.itemsCollected, itemId];
       if (existing) {
         return {
           inventory: state.inventory.map((i) =>
             i.itemId === itemId ? { ...i, count: i.count + count } : i
           ),
+          itemsCollected: newCollected,
         };
       }
-      return { inventory: [...state.inventory, { itemId, count }] };
+      return { inventory: [...state.inventory, { itemId, count }], itemsCollected: newCollected };
     }),
 
   removeItem: (itemId, count = 1) =>
@@ -362,8 +437,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       return { playerPosition: { x: nx, y: ny } };
     }),
 
-  changeMap: (mapId, position) =>
-    set({ currentMapId: mapId, playerPosition: position }),
+  changeMap: (mapId, position) => {
+    set((state) => ({
+      currentMapId: mapId,
+      playerPosition: position,
+      mapsVisited: state.mapsVisited.includes(mapId)
+        ? state.mapsVisited
+        : [...state.mapsVisited, mapId],
+    }));
+    get().checkAchievements();
+  },
 
   interact: () => {
     const state = get();
@@ -514,6 +597,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         state.acceptQuest(id);
       }
     }
+    state.checkAchievements();
   },
 
   startBattle: (enemyIds) =>
@@ -564,6 +648,9 @@ export const useGameStore = create<GameState>((set, get) => ({
           const st = get();
           st.gainExp(totalExp);
           st.addGold(totalGold);
+          set((s) => ({
+            enemiesDefeated: s.enemiesDefeated + state.battle!.enemies.length,
+          }));
           // Check drops
           for (const enemy of state.battle!.enemies) {
             for (const drop of enemy.drops) {
@@ -583,6 +670,7 @@ export const useGameStore = create<GameState>((set, get) => ({
               }
             }
           }
+          st.checkAchievements();
         }, 100);
         return {
           battle: { ...state.battle, enemies, log, phase: "victory" },
@@ -801,6 +889,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       playerPosition: state.playerPosition,
       playTime: state.playTime,
       chapter: state.chapter,
+      day: state.day,
+      unlockedAchievements: state.unlockedAchievements,
     };
     localStorage.setItem(`neetquest_save_${slotId}`, JSON.stringify(saveData));
   },
@@ -821,6 +911,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       playerPosition: saveData.playerPosition,
       playTime: saveData.playTime,
       chapter: saveData.chapter,
+      day: saveData.day ?? 1,
+      unlockedAchievements: saveData.unlockedAchievements ?? [],
       gameStarted: true,
       battle: null,
       currentDialogue: null,
@@ -838,4 +930,97 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   addSocialPoints: (amount) =>
     set((state) => ({ socialPoints: state.socialPoints + amount })),
+
+  // Time
+  advanceDay: () =>
+    set((state) => ({ day: state.day + 1 })),
+
+  // Achievements
+  checkAchievements: () => {
+    const state = get();
+    const newUnlocked: string[] = [];
+    for (const [id, ach] of Object.entries(ACHIEVEMENTS)) {
+      if (state.unlockedAchievements.includes(id)) continue;
+      let met = false;
+      switch (ach.condition.type) {
+        case "level":
+          met = state.player.level >= ach.condition.value;
+          break;
+        case "social_points":
+          met = state.socialPoints >= ach.condition.value;
+          break;
+        case "gold":
+          met = state.gold >= ach.condition.value;
+          break;
+        case "quests_completed":
+          met = state.completedQuests.length >= ach.condition.value;
+          break;
+        case "enemies_defeated":
+          met = state.enemiesDefeated >= ach.condition.value;
+          break;
+        case "maps_visited":
+          met = state.mapsVisited.length >= ach.condition.value;
+          break;
+        case "items_collected":
+          met = state.itemsCollected.length >= ach.condition.value;
+          break;
+      }
+      if (met) newUnlocked.push(id);
+    }
+    if (newUnlocked.length > 0) {
+      set((s) => ({
+        unlockedAchievements: [...s.unlockedAchievements, ...newUnlocked],
+        lastAchievement: newUnlocked[newUnlocked.length - 1],
+      }));
+    }
+  },
+
+  dismissAchievement: () => set({ lastAchievement: null }),
+
+  // Settings
+  updateSettings: (partial) => {
+    const newSettings = { ...get().settings, ...partial };
+    set({ settings: newSettings });
+    localStorage.setItem("neetquest_settings", JSON.stringify(newSettings));
+  },
+
+  // Shop
+  openShop: (shopId) => set({ currentShopId: shopId }),
+  closeShop: () => set({ currentShopId: null }),
+
+  buyItem: (itemId) => {
+    const state = get();
+    const item = ITEMS[itemId];
+    if (!item || state.gold < item.price) return;
+    if (state.currentShopId) {
+      const shop = SHOPS[state.currentShopId];
+      if (!shop) return;
+      const shopItem = shop.inventory.find((si) => si.itemId === itemId);
+      if (!shopItem) return;
+      if (shopItem.stock === 0) return;
+      if (shopItem.stock > 0) shopItem.stock--;
+    }
+    state.addGold(-item.price);
+    state.addItem(itemId);
+    if (!state.itemsCollected.includes(itemId)) {
+      set((s) => ({ itemsCollected: [...s.itemsCollected, itemId] }));
+    }
+    state.checkAchievements();
+  },
+
+  sellItem: (itemId) => {
+    const state = get();
+    const item = ITEMS[itemId];
+    if (!item || item.type === "key") return;
+    const inInventory = state.inventory.find((i) => i.itemId === itemId);
+    if (!inInventory || inInventory.count <= 0) return;
+    const sellPrice = Math.floor(item.price / 2);
+    state.removeItem(itemId);
+    state.addGold(sellPrice);
+  },
+
+  // Tutorial
+  advanceTutorial: () =>
+    set((state) => ({ tutorialStep: state.tutorialStep + 1 })),
+  skipTutorial: () => set({ tutorialStep: 0 }),
 }));

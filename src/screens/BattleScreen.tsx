@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGameStore } from "@/store/gameStore";
 import { ITEMS } from "@/data/items";
 
@@ -24,6 +25,7 @@ export function BattleScreen() {
   const playerFlee = useGameStore((s) => s.playerFlee);
   const endBattle = useGameStore((s) => s.endBattle);
 
+  const navigate = useNavigate();
   const [menu, setMenu] = useState<MenuState>("main");
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 
@@ -144,7 +146,12 @@ export function BattleScreen() {
           <button
             className="btn btn--primary"
             style={{ gridColumn: "1 / -1" }}
-            onClick={endBattle}
+            onClick={() => {
+              endBattle();
+              if (battle.phase === "defeat") {
+                navigate("/");
+              }
+            }}
           >
             {battle.phase === "victory" ? "フィールドに戻る" : "タイトルに戻る"}
           </button>

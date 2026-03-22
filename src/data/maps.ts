@@ -10,7 +10,6 @@ function tile(
 
 const F = () => tile("floor");
 const W = () => tile("wall", false);
-const D = (id?: string) => tile("door", true, id);
 const N = (id: string) => tile("npc", true, id);
 const E = (id: string) => tile("enemy", true, id);
 const X = (id: string) => tile("exit", true, id);
@@ -114,7 +113,7 @@ export const MAPS: Record<string, GameMap> = {
       [W(), F(), F(), F(), F(), F(), F(), W()],
       [W(), F(), F(), F(), F(), F(), F(), W()],
       [W(), F(), F(), F(), F(), F(), F(), W()],
-      [W(), W(), W(), D("room_door"), W(), W(), W(), W()],
+      [W(), W(), W(), X("home"), W(), W(), W(), W()],
     ],
     npcs: [],
     enemies: [],
@@ -126,7 +125,7 @@ export const MAPS: Record<string, GameMap> = {
     width: 8,
     height: 6,
     tiles: [
-      [W(), W(), W(), D("to_room"), W(), W(), W(), W()],
+      [W(), W(), W(), X("my_room"), W(), W(), W(), W()],
       [W(), F(), F(), F(), F(), F(), F(), W()],
       [W(), F(), F(), N("npc_mom"), F(), F(), F(), W()],
       [W(), F(), F(), F(), F(), F(), F(), W()],
@@ -202,7 +201,7 @@ export const MAPS: Record<string, GameMap> = {
       [W(), F(), F(), F(), F(), F(), F(), F(), F(), W()],
       [W(), F(), W(), F(), E("skeleton_deadline"), F(), W(), F(), F(), W()],
       [W(), F(), F(), F(), F(), F(), F(), F(), F(), W()],
-      [W(), F(), E("goblin_procrastination"), F(), F(), F(), N("interviewer_golem"), F(), F(), W()],
+      [W(), F(), E("goblin_procrastination"), F(), F(), F(), E("interviewer_golem"), F(), F(), W()],
       [W(), X("hello_work"), W(), W(), W(), W(), W(), W(), W(), W()],
     ],
     npcs: [],

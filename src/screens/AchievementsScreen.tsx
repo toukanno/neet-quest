@@ -1,6 +1,28 @@
 import { useNavigate } from "react-router-dom";
 import { useGameStore } from "@/store/gameStore";
 import { ACHIEVEMENTS } from "@/data/achievements";
+import type { AchievementCondition } from "@/types/game";
+
+function getConditionHint(condition: AchievementCondition): string {
+  switch (condition.type) {
+    case "level":
+      return `レベル${condition.value}に到達`;
+    case "social_points":
+      return `社会復帰度${condition.value}達成`;
+    case "gold":
+      return `所持金${condition.value}G達成`;
+    case "quests_completed":
+      return `クエストを${condition.value}個完了`;
+    case "enemies_defeated":
+      return `敵を${condition.value}体撃破`;
+    case "maps_visited":
+      return `マップを${condition.value}箇所訪問`;
+    case "items_collected":
+      return `アイテムを${condition.value}種類収集`;
+    default:
+      return "条件を満たすと解放されます";
+  }
+}
 
 export function AchievementsScreen() {
   const navigate = useNavigate();
@@ -37,7 +59,8 @@ export function AchievementsScreen() {
                 display: "flex",
                 alignItems: "center",
                 gap: "0.8rem",
-                opacity: unlocked ? 1 : 0.4,
+                opacity: unlocked ? 1 : 0.5,
+                transition: "opacity 0.2s ease",
               }}
             >
               <div
@@ -50,20 +73,38 @@ export function AchievementsScreen() {
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "1.3rem",
+                  flexShrink: 0,
                 }}
               >
-                {unlocked ? ach.icon : "\u{2753}"}
+                {unlocked ? ach.icon : "\u{1F512}"}
               </div>
-              <div>
-                <div style={{ fontSize: "0.9rem", color: unlocked ? "var(--text-primary)" : "var(--text-muted)" }}>
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    fontSize: "0.9rem",
+                    color: unlocked
+                      ? "var(--text-primary)"
+                      : "var(--text-muted)",
+                    fontWeight: unlocked ? 700 : 400,
+                  }}
+                >
                   {unlocked ? ach.name : "???"}
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  {unlocked ? ach.description : "条件を満たすと解放されます"}
+                  {unlocked
+                    ? ach.description
+                    : getConditionHint(ach.condition)}
                 </div>
               </div>
               {unlocked && (
-                <div style={{ marginLeft: "auto", color: "var(--success)", fontSize: "1.1rem" }}>
+                <div
+                  style={{
+                    marginLeft: "auto",
+                    color: "var(--success)",
+                    fontSize: "1.1rem",
+                    flexShrink: 0,
+                  }}
+                >
                   {"\u2705"}
                 </div>
               )}

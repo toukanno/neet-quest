@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "deploy": "vercel"
   },
   "dependencies": {
     "react": "^19.0.0",

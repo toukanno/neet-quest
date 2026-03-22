@@ -239,7 +239,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  gainExp: (amount) =>
+  gainExp: (amount) => {
     set((state) => {
       let { level, exp, expToNext, maxHp, maxMp, attack, defense, speed } =
         state.player;
@@ -269,7 +269,9 @@ export const useGameStore = create<GameState>((set, get) => ({
           speed,
         },
       };
-    }),
+    });
+    get().checkAchievements();
+  },
 
   takeDamage: (amount) =>
     set((state) => ({
@@ -438,13 +440,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     }),
 
   changeMap: (mapId, position) => {
+    const current = get();
+    const isNewMap = !current.mapsVisited.includes(mapId);
     set((state) => ({
       currentMapId: mapId,
       playerPosition: position,
-      mapsVisited: state.mapsVisited.includes(mapId)
-        ? state.mapsVisited
-        : [...state.mapsVisited, mapId],
+      mapsVisited: isNewMap
+        ? [...state.mapsVisited, mapId]
+        : state.mapsVisited,
     }));
+    if (isNewMap) {
+      get().advanceDay();
+    }
     get().checkAchievements();
   },
 
@@ -591,6 +598,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       completedQuests: [...s.completedQuests, questId],
       activeQuests: s.activeQuests.filter((id) => id !== questId),
     }));
+    state.advanceDay();
     // Auto-accept next quests
     for (const [id, q] of Object.entries(QUESTS)) {
       if (q.prerequisiteQuestId === questId && !state.activeQuests.includes(id)) {

@@ -18,6 +18,7 @@ import { ACHIEVEMENTS } from "@/data/achievements";
 import { SHOPS } from "@/data/shops";
 import { chooseEnemyAction } from "@/data/enemyAI";
 import { choosePartyActions } from "@/data/partyCombat";
+import { PARTY_MEMBERS } from "@/data/partyMembers";
 import type { GameTime, RandomEvent } from "@/data/events";
 import { advanceTime, checkRandomEvent } from "@/data/events";
 import { getSocialRank } from "@/data/endings";
@@ -114,6 +115,10 @@ interface GameState {
   acceptQuest: (questId: string) => void;
   updateQuestProgress: (type: QuestObjective["type"], targetId: string) => void;
   completeQuest: (questId: string) => void;
+
+  // Actions - Party
+  addPartyMember: (memberId: string) => void;
+  removePartyMember: (memberId: string) => void;
 
   // Actions - Battle
   startBattle: (enemyIds: string[]) => void;
@@ -702,6 +707,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     state.checkAchievements();
   },
 
+  addPartyMember: (memberId) => {
+    const member = PARTY_MEMBERS[memberId];
+    if (!member) return;
+    const state = get();
+    if (state.party.some((m) => m.id === memberId)) return;
+    set((s) => ({
+      party: [...s.party, { ...member }],
+    }));
+  },
+
+  removePartyMember: (memberId) =>
+    set((state) => ({
+      party: state.party.filter((m) => m.id !== memberId),
+    })),
+
   startBattle: (enemyIds) =>
     set(() => {
       const enemies: Enemy[] = enemyIds.map((id, i) => ({
@@ -1140,27 +1160,51 @@ export const useGameStore = create<GameState>((set, get) => ({
     get().updateQuestProgress("talk", npcId);
   },
 
-  advanceDialogue: (choiceIndex) =>
-    set((state) => {
-      if (!state.currentDialogue || !state.currentNpcId) return state;
-      const map = MAPS[state.currentMapId];
-      if (!map) return state;
-      const npc = map.npcs.find((n) => n.id === state.currentNpcId);
-      if (!npc) return state;
+  advanceDialogue: (choiceIndex) => {
+    const state = get();
+    if (!state.currentDialogue || !state.currentNpcId) return;
+    const map = MAPS[state.currentMapId];
+    if (!map) return;
+    const npc = map.npcs.find((n) => n.id === state.currentNpcId);
+    if (!npc) return;
 
-      if (state.currentDialogue.choices && choiceIndex !== undefined) {
-        const choice = state.currentDialogue.choices[choiceIndex];
-        if (choice) {
-          const nextDialogue = npc.dialogues.find(
-            (d) => d.id === choice.nextDialogueId,
-          );
-          if (nextDialogue) {
-            return { currentDialogue: nextDialogue };
+    if (state.currentDialogue.choices && choiceIndex !== undefined) {
+      const choice = state.currentDialogue.choices[choiceIndex];
+      if (choice) {
+        // Apply choice effect if present
+        if (choice.effect) {
+          const effectParts = choice.effect.split(":");
+          if (effectParts[0] === "join" && effectParts[1]) {
+            state.addPartyMember(effectParts[1]);
+          } else if (effectParts[0] === "add_item" && effectParts[1]) {
+            state.addItem(effectParts[1]);
+          } else if (effectParts[0] === "add_gold") {
+            state.addGold(parseInt(effectParts[1] ?? "0", 10));
+          } else if (effectParts[0] === "add_sp") {
+            state.addSocialPoints(parseInt(effectParts[1] ?? "0", 10));
           }
         }
+        const nextDialogue = npc.dialogues.find(
+          (d) => d.id === choice.nextDialogueId,
+        );
+        if (nextDialogue) {
+          set({ currentDialogue: nextDialogue });
+          return;
+        }
       }
-      return { currentDialogue: null, currentNpcId: null };
-    }),
+    }
+
+    // Check dialogue condition/effect when reaching a terminal dialogue
+    const dialogue = state.currentDialogue;
+    if (dialogue.condition) {
+      const condParts = dialogue.condition.split(":");
+      if (condParts[0] === "join" && condParts[1]) {
+        state.addPartyMember(condParts[1]);
+      }
+    }
+
+    set({ currentDialogue: null, currentNpcId: null });
+  },
 
   endDialogue: () => set({ currentDialogue: null, currentNpcId: null }),
 

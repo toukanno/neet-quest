@@ -130,6 +130,80 @@ const npcJogger: NPC = {
   ],
 };
 
+const npcYuki: NPC = {
+  id: "npc_yuki",
+  name: "ゆき",
+  role: "社会復帰支援グループのメンバー",
+  position: { x: 2, y: 3 },
+  sprite: "yuki",
+  dialogues: [
+    {
+      id: "yuki_1",
+      text: "...あ、こんにちは。私、ゆきです。\nここには...絵を描きに来てるんです。",
+      choices: [
+        { text: "絵、見せてもらってもいい？", nextDialogueId: "yuki_2" },
+        { text: "俺もここ初めてで...", nextDialogueId: "yuki_3" },
+      ],
+    },
+    {
+      id: "yuki_2",
+      text: "え、いいの？...これ、外の景色を想像して描いたの。\n一緒に外に出て...本物を見てみたいな。",
+      choices: [
+        { text: "一緒に行こう！", nextDialogueId: "yuki_join" },
+      ],
+    },
+    {
+      id: "yuki_3",
+      text: "そうなんだ...私も最初は怖かったけど、\nここの人たちは優しいよ。",
+      choices: [
+        { text: "一緒に冒険しない？", nextDialogueId: "yuki_join" },
+      ],
+    },
+    {
+      id: "yuki_join",
+      text: "え...一緒に？...うん、行きたい！\nゆきが仲間になった！",
+      condition: "join:yuki",
+    },
+  ],
+};
+
+const npcDaisuke: NPC = {
+  id: "npc_daisuke",
+  name: "大輔",
+  role: "社会復帰支援グループのメンバー",
+  position: { x: 5, y: 3 },
+  sprite: "daisuke",
+  dialogues: [
+    {
+      id: "daisuke_1",
+      text: "...ああ、新しい人か。俺は大輔。\n元SEだ。今は...まあ、リハビリ中。",
+      choices: [
+        { text: "SEって、プログラミングとか？", nextDialogueId: "daisuke_2" },
+        { text: "リハビリ、大変？", nextDialogueId: "daisuke_3" },
+      ],
+    },
+    {
+      id: "daisuke_2",
+      text: "ああ。デバッグが得意でな。\n...人生のバグも、いつか直せるといいんだが。",
+      choices: [
+        { text: "一緒にバグ取りしようぜ", nextDialogueId: "daisuke_join" },
+      ],
+    },
+    {
+      id: "daisuke_3",
+      text: "まあな。でも前みたいに一人で抱え込まないようにしてる。\n...お前も、一人で戦ってないか？",
+      choices: [
+        { text: "力を貸してくれ", nextDialogueId: "daisuke_join" },
+      ],
+    },
+    {
+      id: "daisuke_join",
+      text: "...いいだろう。お前に付き合ってやる。\n大輔が仲間になった！",
+      condition: "join:daisuke",
+    },
+  ],
+};
+
 export const MAPS: Record<string, GameMap> = {
   my_room: {
     id: "my_room",
@@ -178,7 +252,7 @@ export const MAPS: Record<string, GameMap> = {
       [F(), E("slime_laziness"), F(), F(), F(), F(), F(), E("slime_laziness"), F(), F()],
       [F(), F(), F(), F(), F(), F(), F(), F(), F(), X("park")],
       [F(), F(), F(), E("bat_anxiety"), F(), F(), X("hello_work"), F(), F(), F()],
-      [W(), W(), W(), W(), W(), W(), W(), W(), W(), W()],
+      [W(), W(), W(), W(), X("support_center"), W(), W(), W(), W(), W()],
     ],
     npcs: [],
     enemies: ["slime_laziness", "bat_anxiety"],
@@ -255,5 +329,22 @@ export const MAPS: Record<string, GameMap> = {
     npcs: [npcJogger],
     enemies: ["wolf_comparison", "bat_anxiety"],
     bgm: "park",
+  },
+  support_center: {
+    id: "support_center",
+    name: "社会復帰支援センター",
+    width: 8,
+    height: 6,
+    tiles: [
+      [W(), W(), W(), W(), W(), W(), W(), W()],
+      [W(), F(), F(), F(), F(), F(), F(), W()],
+      [W(), F(), F(), F(), F(), F(), F(), W()],
+      [W(), F(), N("npc_yuki"), F(), F(), N("npc_daisuke"), F(), W()],
+      [W(), F(), F(), F(), F(), F(), F(), W()],
+      [W(), W(), W(), X("town"), W(), W(), W(), W()],
+    ],
+    npcs: [npcYuki, npcDaisuke],
+    enemies: [],
+    bgm: "support_center",
   },
 };

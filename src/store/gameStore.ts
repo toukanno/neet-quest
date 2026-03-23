@@ -16,6 +16,12 @@ import { MAPS } from "@/data/maps";
 import { ENEMIES } from "@/data/enemies";
 import { ACHIEVEMENTS } from "@/data/achievements";
 import { SHOPS } from "@/data/shops";
+import { chooseEnemyAction } from "@/data/enemyAI";
+import type { GameTime, RandomEvent } from "@/data/events";
+import { advanceTime, checkRandomEvent } from "@/data/events";
+import { getSocialRank } from "@/data/endings";
+import type { Ending } from "@/data/endings";
+import { getEnding } from "@/data/endings";
 
 interface InventoryItem {
   itemId: string;
@@ -44,6 +50,15 @@ interface GameState {
   // Dialogue
   currentDialogue: Dialogue | null;
   currentNpcId: string | null;
+
+  // Time
+  gameTime: GameTime;
+
+  // Events
+  currentEvent: RandomEvent | null;
+
+  // Ending
+  currentEnding: Ending | null;
 
   // Meta
   chapter: number;
@@ -140,6 +155,16 @@ interface GameState {
   // Actions - Tutorial
   advanceTutorial: () => void;
   skipTutorial: () => void;
+
+  // Actions - Events
+  dismissEvent: () => void;
+
+  // Actions - Ending
+  checkEnding: () => void;
+  dismissEnding: () => void;
+
+  // Getters
+  getSocialRank: () => string;
 }
 
 function createDefaultPlayer(): Character {
@@ -223,6 +248,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   battle: null,
   currentDialogue: null,
   currentNpcId: null,
+  gameTime: { day: 1, timeOfDay: "morning", totalSteps: 0 },
+  currentEvent: null,
+  currentEnding: null,
   chapter: 1,
   playTime: 0,
   gameStarted: false,
@@ -257,6 +285,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       battle: null,
       currentDialogue: null,
       currentNpcId: null,
+      gameTime: { day: 1, timeOfDay: "morning", totalSteps: 0 },
+      currentEvent: null,
+      currentEnding: null,
       chapter: 1,
       playTime: 0,
       gameStarted: true,
@@ -471,7 +502,24 @@ export const useGameStore = create<GameState>((set, get) => ({
         setTimeout(() => get().startBattle(enemyIds), 100);
       }
 
-      return { playerPosition: { x: nx, y: ny } };
+      // Advance game time
+      const newGameTime = advanceTime(state.gameTime);
+
+      // Check for random events
+      const eventContext = {
+        day: newGameTime.day,
+        timeOfDay: newGameTime.timeOfDay,
+        socialPoints: state.socialPoints,
+        currentMapId: state.currentMapId,
+        chapter: state.chapter,
+        playerLevel: state.player.level,
+      };
+      const event = checkRandomEvent(eventContext);
+      if (event) {
+        setTimeout(() => set({ currentEvent: event }), 200);
+      }
+
+      return { playerPosition: { x: nx, y: ny }, gameTime: newGameTime };
     }),
 
   changeMap: (mapId, position) => {
@@ -902,29 +950,64 @@ export const useGameStore = create<GameState>((set, get) => ({
   enemyTurn: () =>
     set((state) => {
       if (!state.battle) return state;
+      const enemies = [...state.battle.enemies];
       const log = [...state.battle.log];
       let playerHp = state.player.hp;
+      let playerDef = state.player.defense;
 
-      for (const enemy of state.battle.enemies) {
+      for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i];
         if (enemy.hp <= 0) continue;
-        const damage = calcDamage(enemy.attack, state.player.defense);
-        playerHp = Math.max(0, playerHp - damage);
-        log.push(
-          `${enemy.name}の攻撃！${state.player.name}に${damage}のダメージ！`,
-        );
+
+        const playerSnapshot = { hp: playerHp, maxHp: state.player.maxHp, defense: playerDef };
+        const action = chooseEnemyAction(enemy, playerSnapshot, {
+          turnCount: state.battle.currentTurn,
+          currentHp: enemy.hp,
+          maxHp: enemy.maxHp,
+        });
+
+        if (action.type === "skill" && action.skillId) {
+          const skill = enemy.skills.find((s) => s.id === action.skillId);
+          if (skill) {
+            if (skill.type === "attack") {
+              const damage = calcDamage(enemy.attack + skill.power, playerDef);
+              playerHp = Math.max(0, playerHp - damage);
+              log.push(`${enemy.name}の${skill.name}！${state.player.name}に${damage}のダメージ！`);
+            } else if (skill.type === "debuff") {
+              playerDef = Math.max(0, playerDef - skill.power);
+              log.push(`${enemy.name}の${skill.name}！${state.player.name}の防御力が${skill.power}下がった！`);
+            } else if (skill.type === "buff") {
+              enemies[i] = { ...enemy, attack: enemy.attack + skill.power };
+              log.push(`${enemy.name}の${skill.name}！${enemy.name}の攻撃力が上がった！`);
+            } else if (skill.type === "heal") {
+              const healAmount = Math.min(skill.power, enemy.maxHp - enemy.hp);
+              enemies[i] = { ...enemy, hp: enemy.hp + healAmount };
+              log.push(`${enemy.name}の${skill.name}！HPが${healAmount}回復した！`);
+            }
+          } else {
+            // Skill not found, fallback to basic attack
+            const damage = calcDamage(enemy.attack, playerDef);
+            playerHp = Math.max(0, playerHp - damage);
+            log.push(`${enemy.name}の攻撃！${state.player.name}に${damage}のダメージ！`);
+          }
+        } else {
+          const damage = calcDamage(enemy.attack, playerDef);
+          playerHp = Math.max(0, playerHp - damage);
+          log.push(`${enemy.name}の攻撃！${state.player.name}に${damage}のダメージ！`);
+        }
       }
 
       if (playerHp <= 0) {
         log.push(`${state.player.name}は力尽きた...`);
         return {
-          player: { ...state.player, hp: 0 },
-          battle: { ...state.battle, log, phase: "defeat" },
+          player: { ...state.player, hp: 0, defense: playerDef },
+          battle: { ...state.battle, enemies, log, phase: "defeat", currentTurn: state.battle.currentTurn + 1 },
         };
       }
 
       return {
-        player: { ...state.player, hp: playerHp },
-        battle: { ...state.battle, log, phase: "player_turn" },
+        player: { ...state.player, hp: playerHp, defense: playerDef },
+        battle: { ...state.battle, enemies, log, phase: "player_turn", currentTurn: state.battle.currentTurn + 1 },
       };
     }),
 
@@ -986,6 +1069,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       itemsCollected: state.itemsCollected,
       questProgress: state.questProgress,
       shopStock: state.shopStock,
+      gameTime: state.gameTime,
     };
     localStorage.setItem(`neetquest_save_${slotId}`, JSON.stringify(saveData));
   },
@@ -1013,10 +1097,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       itemsCollected: saveData.itemsCollected ?? [],
       questProgress: saveData.questProgress ?? cloneQuestProgress(),
       shopStock: saveData.shopStock ?? initShopStock(),
+      gameTime: saveData.gameTime ?? { day: 1, timeOfDay: "morning" as const, totalSteps: 0 },
       gameStarted: true,
       battle: null,
       currentDialogue: null,
       currentNpcId: null,
+      currentEvent: null,
+      currentEnding: null,
     });
     return true;
   },
@@ -1131,7 +1218,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   advanceTutorial: () =>
     set((state) => {
       const nextStep = state.tutorialStep + 1;
-      // 5ステップ完了後は showTutorial を false にして次回から非表示
       if (nextStep > 5) {
         const newSettings = { ...state.settings, showTutorial: false };
         localStorage.setItem("neetquest_settings", JSON.stringify(newSettings));
@@ -1145,4 +1231,25 @@ export const useGameStore = create<GameState>((set, get) => ({
     localStorage.setItem("neetquest_settings", JSON.stringify(newSettings));
     set({ tutorialStep: 0, settings: newSettings });
   },
+
+  // Events
+  dismissEvent: () => set({ currentEvent: null }),
+
+  // Ending
+  checkEnding: () => {
+    const state = get();
+    const ending = getEnding({
+      socialPoints: state.socialPoints,
+      completedQuests: state.completedQuests,
+      chapter: state.chapter,
+      playerLevel: state.player.level,
+      partySize: state.party.length,
+      day: state.gameTime.day,
+    });
+    set({ currentEnding: ending });
+  },
+
+  dismissEnding: () => set({ currentEnding: null }),
+
+  getSocialRank: () => getSocialRank(get().socialPoints),
 }));

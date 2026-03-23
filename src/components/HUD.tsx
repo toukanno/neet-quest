@@ -1,10 +1,17 @@
 import { useGameStore } from "@/store/gameStore";
 
+const TIME_LABELS: Record<string, string> = {
+  morning: "朝",
+  afternoon: "昼",
+  evening: "夕",
+  night: "夜",
+};
+
 export function HUD() {
   const player = useGameStore((s) => s.player);
   const gold = useGameStore((s) => s.gold);
   const socialPoints = useGameStore((s) => s.socialPoints);
-  const day = useGameStore((s) => s.day);
+  const gameTime = useGameStore((s) => s.gameTime);
 
   return (
     <div className="hud">
@@ -48,7 +55,9 @@ export function HUD() {
         </div>
       </div>
       <div className="hud__right">
-        <span className="hud__day">Day {day}</span>
+        <span className="hud__day">
+          {gameTime.day}日目 {TIME_LABELS[gameTime.timeOfDay] ?? ""}
+        </span>
         <span style={{ color: "var(--gold)" }}>{gold}G</span>
         <span style={{ color: "var(--social-bar)" }}>&#x2764; {socialPoints}</span>
       </div>

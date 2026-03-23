@@ -7,17 +7,10 @@ export function StatusScreen() {
   const socialPoints = useGameStore((s) => s.socialPoints);
   const gold = useGameStore((s) => s.gold);
   const chapter = useGameStore((s) => s.chapter);
+  const getSocialRank = useGameStore((s) => s.getSocialRank);
+  const gameTime = useGameStore((s) => s.gameTime);
 
-  const socialLevel =
-    socialPoints < 20
-      ? "ひきこもり"
-      : socialPoints < 50
-        ? "散歩できるニート"
-        : socialPoints < 100
-          ? "バイト戦士"
-          : socialPoints < 200
-            ? "就活生"
-            : "社会人";
+  const socialLevel = getSocialRank();
 
   return (
     <div className="screen">
@@ -97,6 +90,7 @@ export function StatusScreen() {
       <div className="panel">
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
           <span>所持金: {gold}G</span>
+          <span>{gameTime.day}日目</span>
           <span>第{chapter}章</span>
         </div>
       </div>

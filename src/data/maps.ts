@@ -101,6 +101,35 @@ const npcStoreManager: NPC = {
   ],
 };
 
+const npcJogger: NPC = {
+  id: "npc_jogger",
+  name: "ジョギングおじさん",
+  role: "公園のランナー",
+  position: { x: 5, y: 4 },
+  sprite: "jogger",
+  dialogues: [
+    {
+      id: "jogger_1",
+      text: "おっ、散歩かい？いいね！\n体を動かすと気持ちも前向きになるぞ！",
+      choices: [
+        { text: "走るのって楽しいですか？", nextDialogueId: "jogger_2" },
+        { text: "ちょっと疲れました...", nextDialogueId: "jogger_3" },
+      ],
+    },
+    {
+      id: "jogger_2",
+      text: "最初はキツいけどな、続けてると体が軽くなるんだ！\nまずは歩くだけでも十分さ。一緒に一周どうだ？",
+    },
+    {
+      id: "jogger_3",
+      text: "無理しなくていいぞ！ベンチで休んでいけ。\nでもな、ここまで来れたこと自体がすごいんだぜ！",
+      choices: [
+        { text: "...ありがとうございます", nextDialogueId: "jogger_2" },
+      ],
+    },
+  ],
+};
+
 export const MAPS: Record<string, GameMap> = {
   my_room: {
     id: "my_room",
@@ -147,7 +176,7 @@ export const MAPS: Record<string, GameMap> = {
       [F(), F(), E("slime_laziness"), F(), F(), F(), E("bat_anxiety"), F(), F(), F()],
       [F(), F(), F(), F(), X("convenience_store"), F(), F(), F(), F(), F()],
       [F(), E("slime_laziness"), F(), F(), F(), F(), F(), E("slime_laziness"), F(), F()],
-      [F(), F(), F(), F(), F(), F(), F(), F(), F(), F()],
+      [F(), F(), F(), F(), F(), F(), F(), F(), F(), X("park")],
       [F(), F(), F(), E("bat_anxiety"), F(), F(), X("hello_work"), F(), F(), F()],
       [W(), W(), W(), W(), W(), W(), W(), W(), W(), W()],
     ],
@@ -207,5 +236,24 @@ export const MAPS: Record<string, GameMap> = {
     npcs: [],
     enemies: ["goblin_procrastination", "skeleton_deadline"],
     bgm: "dungeon",
+  },
+  park: {
+    id: "park",
+    name: "公園",
+    width: 10,
+    height: 8,
+    tiles: [
+      [W(), W(), W(), W(), W(), W(), W(), W(), W(), W()],
+      [W(), W(), F(), F(), F(), W(), F(), F(), W(), W()],
+      [W(), F(), F(), E("wolf_comparison"), F(), F(), F(), F(), F(), W()],
+      [W(), F(), W(), F(), F(), F(), F(), W(), F(), W()],
+      [X("town"), F(), F(), F(), F(), N("npc_jogger"), F(), F(), F(), W()],
+      [W(), F(), F(), F(), W(), F(), F(), E("bat_anxiety"), F(), W()],
+      [W(), W(), F(), F(), F(), F(), F(), F(), W(), W()],
+      [W(), W(), W(), W(), W(), W(), W(), W(), W(), W()],
+    ],
+    npcs: [npcJogger],
+    enemies: ["wolf_comparison", "bat_anxiety"],
+    bgm: "park",
   },
 };

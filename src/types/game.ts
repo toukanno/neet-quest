@@ -166,6 +166,11 @@ export interface SaveData {
   mapsVisited: string[];
   itemsCollected: string[];
   shopStock: Record<string, Record<string, number>>;
+  gameTime?: {
+    day: number;
+    timeOfDay: "morning" | "afternoon" | "evening" | "night";
+    totalSteps: number;
+  };
 }
 
 export interface Achievement {

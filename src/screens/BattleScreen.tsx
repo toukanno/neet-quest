@@ -11,6 +11,10 @@ const ENEMY_SPRITES: Record<string, string> = {
   wolf: "\u{1F43A}",
   golem: "\u{1F916}",
   boss: "\u{1F47F}",
+  boss_shadow: "\u{1F300}",
+  boss_mirror: "\u{1FA9E}",
+  boss_flashback: "\u{1F4F8}",
+  boss_door: "\u{1F6AA}",
 };
 
 type MenuState = "main" | "skill" | "item" | "target";

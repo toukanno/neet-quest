@@ -110,4 +110,25 @@ export const ITEMS: Record<string, Item> = {
     type: "key",
     price: 0,
   },
+  breathing_manual: {
+    id: "breathing_manual",
+    name: "深呼吸の手引き",
+    description: "社交不安を克服した証。心を落ち着ける方法が書かれている。",
+    type: "key",
+    price: 0,
+  },
+  mirror_shard: {
+    id: "mirror_shard",
+    name: "鏡のかけら",
+    description: "自己否定を打ち破った証。自分を映す鏡の破片。",
+    type: "key",
+    price: 0,
+  },
+  old_student_id: {
+    id: "old_student_id",
+    name: "古い学生証",
+    description: "過去のトラウマを乗り越えた証。もう過去に縛られない。",
+    type: "key",
+    price: 0,
+  },
 };

@@ -67,6 +67,10 @@ interface GameState {
 
   // Shop
   currentShopId: string | null;
+  shopStock: Record<string, Record<string, number>>;
+
+  // Quest progress (cloned from QUESTS to avoid mutation)
+  questProgress: Record<string, QuestObjective[]>;
 
   // Tutorial
   tutorialStep: number;
@@ -162,8 +166,34 @@ function loadSettings(): GameSettings {
   try {
     const saved = localStorage.getItem("neetquest_settings");
     if (saved) return JSON.parse(saved);
-  } catch { /* use defaults */ }
-  return { bgmVolume: 70, seVolume: 80, textSpeed: "normal", showTutorial: true };
+  } catch {
+    /* use defaults */
+  }
+  return {
+    bgmVolume: 70,
+    seVolume: 80,
+    textSpeed: "normal",
+    showTutorial: true,
+  };
+}
+
+function cloneQuestProgress(): Record<string, QuestObjective[]> {
+  const progress: Record<string, QuestObjective[]> = {};
+  for (const [id, quest] of Object.entries(QUESTS)) {
+    progress[id] = quest.objectives.map((o) => ({ ...o }));
+  }
+  return progress;
+}
+
+function initShopStock(): Record<string, Record<string, number>> {
+  const stock: Record<string, Record<string, number>> = {};
+  for (const [shopId, shop] of Object.entries(SHOPS)) {
+    stock[shopId] = {};
+    for (const si of shop.inventory) {
+      stock[shopId][si.itemId] = si.stock;
+    }
+  }
+  return stock;
 }
 
 function calcExpToNext(level: number): number {
@@ -204,6 +234,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   itemsCollected: ["cup_noodle", "wooden_sword", "hoodie"],
   settings: loadSettings(),
   currentShopId: null,
+  shopStock: initShopStock(),
+  questProgress: cloneQuestProgress(),
   tutorialStep: 0,
 
   initNewGame: () => {
@@ -235,6 +267,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       mapsVisited: ["my_room"],
       itemsCollected: ["cup_noodle", "wooden_sword", "hoodie"],
       currentShopId: null,
+      shopStock: initShopStock(),
+      questProgress: cloneQuestProgress(),
       tutorialStep: showTutorial ? 1 : 0,
     });
   },
@@ -306,12 +340,15 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (existing) {
         return {
           inventory: state.inventory.map((i) =>
-            i.itemId === itemId ? { ...i, count: i.count + count } : i
+            i.itemId === itemId ? { ...i, count: i.count + count } : i,
           ),
           itemsCollected: newCollected,
         };
       }
-      return { inventory: [...state.inventory, { itemId, count }], itemsCollected: newCollected };
+      return {
+        inventory: [...state.inventory, { itemId, count }],
+        itemsCollected: newCollected,
+      };
     }),
 
   removeItem: (itemId, count = 1) =>
@@ -319,7 +356,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       return {
         inventory: state.inventory
           .map((i) =>
-            i.itemId === itemId ? { ...i, count: i.count - count } : i
+            i.itemId === itemId ? { ...i, count: i.count - count } : i,
           )
           .filter((i) => i.count > 0),
       };
@@ -374,12 +411,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         speed += item.stats.speed ?? 0;
       }
 
+      const withoutEquipped = state.inventory
+        .map((i) => (i.itemId === itemId ? { ...i, count: i.count - 1 } : i))
+        .filter((i) => i.count > 0);
       const newInventory = oldEquip
-        ? [
-            ...state.inventory.filter((i) => i.itemId !== itemId),
-            { itemId: oldEquip.id, count: 1 },
-          ]
-        : state.inventory.filter((i) => i.itemId !== itemId);
+        ? [...withoutEquipped, { itemId: oldEquip.id, count: 1 }]
+        : withoutEquipped;
 
       return {
         player: {
@@ -394,8 +431,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  addGold: (amount) =>
-    set((state) => ({ gold: state.gold + amount })),
+  addGold: (amount) => set((state) => ({ gold: state.gold + amount })),
 
   movePlayer: (direction) =>
     set((state) => {
@@ -418,8 +454,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           nx = x + 1;
           break;
       }
-      if (nx < 0 || nx >= map.width || ny < 0 || ny >= map.height)
-        return state;
+      if (nx < 0 || nx >= map.width || ny < 0 || ny >= map.height) return state;
       const targetTile = map.tiles[ny][nx];
       if (!targetTile.passable) return state;
 
@@ -445,9 +480,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => ({
       currentMapId: mapId,
       playerPosition: position,
-      mapsVisited: isNewMap
-        ? [...state.mapsVisited, mapId]
-        : state.mapsVisited,
+      mapsVisited: isNewMap ? [...state.mapsVisited, mapId] : state.mapsVisited,
     }));
     if (isNewMap) {
       get().advanceDay();
@@ -560,19 +593,27 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => {
       let questCompleted: string | null = null;
       const activeQuests = state.activeQuests;
+      const newProgress = { ...state.questProgress };
 
       for (const questId of activeQuests) {
-        const quest = QUESTS[questId];
-        if (!quest) continue;
-        for (const obj of quest.objectives) {
-          if (obj.type === type && obj.targetId === targetId && !obj.completed) {
-            obj.currentCount++;
-            if (obj.currentCount >= obj.targetCount) {
-              obj.completed = true;
-            }
+        const objectives = newProgress[questId];
+        if (!objectives) continue;
+        newProgress[questId] = objectives.map((obj) => {
+          if (
+            obj.type === type &&
+            obj.targetId === targetId &&
+            !obj.completed
+          ) {
+            const newCount = obj.currentCount + 1;
+            return {
+              ...obj,
+              currentCount: newCount,
+              completed: newCount >= obj.targetCount,
+            };
           }
-        }
-        if (quest.objectives.every((o) => o.completed)) {
+          return obj;
+        });
+        if (newProgress[questId].every((o) => o.completed)) {
           questCompleted = questId;
         }
       }
@@ -581,7 +622,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         setTimeout(() => get().completeQuest(questCompleted!), 500);
       }
 
-      return {};
+      return { questProgress: newProgress };
     }),
 
   completeQuest: (questId) => {
@@ -601,7 +642,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     state.advanceDay();
     // Auto-accept next quests
     for (const [id, q] of Object.entries(QUESTS)) {
-      if (q.prerequisiteQuestId === questId && !state.activeQuests.includes(id)) {
+      if (
+        q.prerequisiteQuestId === questId &&
+        !state.activeQuests.includes(id)
+      ) {
         state.acceptQuest(id);
       }
     }
@@ -621,9 +665,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           enemies,
           turnOrder: [],
           currentTurn: 0,
-          log: [
-            `${enemies.map((e) => e.name).join("と")}が現れた！`,
-          ],
+          log: [`${enemies.map((e) => e.name).join("と")}が現れた！`],
         },
       };
     }),
@@ -652,15 +694,16 @@ export const useGameStore = create<GameState>((set, get) => ({
         const totalExp = state.battle.enemies.reduce((s, e) => s + e.exp, 0);
         const totalGold = state.battle.enemies.reduce((s, e) => s + e.gold, 0);
         log.push(`勝利！${totalExp}EXP と ${totalGold}G を獲得！`);
+        const battleEnemies = state.battle.enemies;
         setTimeout(() => {
+          if (!get().battle) return;
           const st = get();
           st.gainExp(totalExp);
           st.addGold(totalGold);
           set((s) => ({
-            enemiesDefeated: s.enemiesDefeated + state.battle!.enemies.length,
+            enemiesDefeated: s.enemiesDefeated + battleEnemies.length,
           }));
-          // Check drops
-          for (const enemy of state.battle!.enemies) {
+          for (const enemy of battleEnemies) {
             for (const drop of enemy.drops) {
               if (Math.random() < drop.rate) {
                 st.addItem(drop.itemId);
@@ -686,7 +729,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       // Trigger enemy turn after short delay
-      setTimeout(() => get().enemyTurn(), 800);
+      setTimeout(() => {
+        if (get().battle) get().enemyTurn();
+      }, 800);
       return {
         battle: { ...state.battle, enemies, log, phase: "enemy_turn" },
       };
@@ -706,40 +751,45 @@ export const useGameStore = create<GameState>((set, get) => ({
         const healAmount = skill.power;
         newPlayer.hp = Math.min(newPlayer.maxHp, newPlayer.hp + healAmount);
         log.push(
-          `${newPlayer.name}は${skill.name}を使った！HPが${healAmount}回復！`
+          `${newPlayer.name}は${skill.name}を使った！HPが${healAmount}回復！`,
         );
       } else if (skill.type === "attack") {
         if (skill.target === "all") {
+          const logLenBefore = log.length;
           for (let i = 0; i < enemies.length; i++) {
             if (enemies[i].hp <= 0) continue;
             const damage = calcDamage(
               state.player.attack + skill.power,
-              enemies[i].defense
+              enemies[i].defense,
             );
-            enemies[i] = { ...enemies[i], hp: Math.max(0, enemies[i].hp - damage) };
+            enemies[i] = {
+              ...enemies[i],
+              hp: Math.max(0, enemies[i].hp - damage),
+            };
             log.push(`${enemies[i].name}に${damage}のダメージ！`);
             if (enemies[i].hp <= 0) {
               log.push(`${enemies[i].name}を倒した！`);
-              state.updateQuestProgress("defeat", enemies[i].id.replace(/_\d+$/, ""));
+              state.updateQuestProgress(
+                "defeat",
+                enemies[i].id.replace(/_\d+$/, ""),
+              );
             }
           }
-          log.unshift(
-            log.splice(
-              log.length - enemies.filter((e) => e.hp > 0 || e.hp <= 0).length,
-              0,
-              `${newPlayer.name}は${skill.name}を放った！`
-            )[0] ?? `${newPlayer.name}は${skill.name}を放った！`
+          log.splice(
+            logLenBefore,
+            0,
+            `${newPlayer.name}は${skill.name}を放った！`,
           );
         } else {
           const target = { ...enemies[targetIndex] };
           const damage = calcDamage(
             state.player.attack + skill.power,
-            target.defense
+            target.defense,
           );
           target.hp = Math.max(0, target.hp - damage);
           enemies[targetIndex] = target;
           log.push(
-            `${newPlayer.name}は${skill.name}を使った！${target.name}に${damage}のダメージ！`
+            `${newPlayer.name}は${skill.name}を使った！${target.name}に${damage}のダメージ！`,
           );
           if (target.hp <= 0) {
             log.push(`${target.name}を倒した！`);
@@ -754,8 +804,35 @@ export const useGameStore = create<GameState>((set, get) => ({
         const totalGold = state.battle.enemies.reduce((s, e) => s + e.gold, 0);
         log.push(`勝利！${totalExp}EXP と ${totalGold}G を獲得！`);
         setTimeout(() => {
-          get().gainExp(totalExp);
-          get().addGold(totalGold);
+          const st = get();
+          if (!st.battle) return;
+          st.gainExp(totalExp);
+          st.addGold(totalGold);
+          set((s) => ({
+            enemiesDefeated: s.enemiesDefeated + state.battle!.enemies.length,
+          }));
+          for (const enemy of state.battle!.enemies) {
+            for (const drop of enemy.drops) {
+              if (Math.random() < drop.rate) {
+                st.addItem(drop.itemId);
+                const dropItem = ITEMS[drop.itemId];
+                if (dropItem) {
+                  set((s) => ({
+                    battle: s.battle
+                      ? {
+                          ...s.battle,
+                          log: [
+                            ...s.battle.log,
+                            `${dropItem.name}を手に入れた！`,
+                          ],
+                        }
+                      : null,
+                  }));
+                }
+              }
+            }
+          }
+          st.checkAchievements();
         }, 100);
         return {
           player: newPlayer,
@@ -763,7 +840,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         };
       }
 
-      setTimeout(() => get().enemyTurn(), 800);
+      setTimeout(() => {
+        if (get().battle) get().enemyTurn();
+      }, 800);
       return {
         player: newPlayer,
         battle: { ...state.battle, enemies, log, phase: "enemy_turn" },
@@ -785,7 +864,9 @@ export const useGameStore = create<GameState>((set, get) => ({
             }
           : null,
       }));
-      setTimeout(() => get().enemyTurn(), 800);
+      setTimeout(() => {
+        if (get().battle) get().enemyTurn();
+      }, 800);
     }
   },
 
@@ -812,7 +893,9 @@ export const useGameStore = create<GameState>((set, get) => ({
           }
         : null,
     }));
-    setTimeout(() => get().enemyTurn(), 800);
+    setTimeout(() => {
+      if (get().battle) get().enemyTurn();
+    }, 800);
     return false;
   },
 
@@ -826,7 +909,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         if (enemy.hp <= 0) continue;
         const damage = calcDamage(enemy.attack, state.player.defense);
         playerHp = Math.max(0, playerHp - damage);
-        log.push(`${enemy.name}の攻撃！${state.player.name}に${damage}のダメージ！`);
+        log.push(
+          `${enemy.name}の攻撃！${state.player.name}に${damage}のダメージ！`,
+        );
       }
 
       if (playerHp <= 0) {
@@ -862,14 +947,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       const npc = map.npcs.find((n) => n.id === state.currentNpcId);
       if (!npc) return state;
 
-      if (
-        state.currentDialogue.choices &&
-        choiceIndex !== undefined
-      ) {
+      if (state.currentDialogue.choices && choiceIndex !== undefined) {
         const choice = state.currentDialogue.choices[choiceIndex];
         if (choice) {
           const nextDialogue = npc.dialogues.find(
-            (d) => d.id === choice.nextDialogueId
+            (d) => d.id === choice.nextDialogueId,
           );
           if (nextDialogue) {
             return { currentDialogue: nextDialogue };
@@ -899,6 +981,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       chapter: state.chapter,
       day: state.day,
       unlockedAchievements: state.unlockedAchievements,
+      enemiesDefeated: state.enemiesDefeated,
+      mapsVisited: state.mapsVisited,
+      itemsCollected: state.itemsCollected,
+      questProgress: state.questProgress,
+      shopStock: state.shopStock,
     };
     localStorage.setItem(`neetquest_save_${slotId}`, JSON.stringify(saveData));
   },
@@ -921,6 +1008,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       chapter: saveData.chapter,
       day: saveData.day ?? 1,
       unlockedAchievements: saveData.unlockedAchievements ?? [],
+      enemiesDefeated: saveData.enemiesDefeated ?? 0,
+      mapsVisited: saveData.mapsVisited ?? ["my_room"],
+      itemsCollected: saveData.itemsCollected ?? [],
+      questProgress: saveData.questProgress ?? cloneQuestProgress(),
+      shopStock: saveData.shopStock ?? initShopStock(),
       gameStarted: true,
       battle: null,
       currentDialogue: null,
@@ -940,8 +1032,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => ({ socialPoints: state.socialPoints + amount })),
 
   // Time
-  advanceDay: () =>
-    set((state) => ({ day: state.day + 1 })),
+  advanceDay: () => set((state) => ({ day: state.day + 1 })),
 
   // Achievements
   checkAchievements: () => {
@@ -1001,18 +1092,27 @@ export const useGameStore = create<GameState>((set, get) => ({
     const item = ITEMS[itemId];
     if (!item || state.gold < item.price) return;
     if (state.currentShopId) {
-      const shop = SHOPS[state.currentShopId];
+      const shopId = state.currentShopId;
+      const shop = SHOPS[shopId];
       if (!shop) return;
       const shopItem = shop.inventory.find((si) => si.itemId === itemId);
       if (!shopItem) return;
-      if (shopItem.stock === 0) return;
-      if (shopItem.stock > 0) shopItem.stock--;
+      const currentStock = state.shopStock[shopId]?.[itemId] ?? shopItem.stock;
+      if (currentStock === 0) return;
+      if (currentStock > 0) {
+        set((s) => ({
+          shopStock: {
+            ...s.shopStock,
+            [shopId]: {
+              ...s.shopStock[shopId],
+              [itemId]: currentStock - 1,
+            },
+          },
+        }));
+      }
     }
     state.addGold(-item.price);
     state.addItem(itemId);
-    if (!state.itemsCollected.includes(itemId)) {
-      set((s) => ({ itemsCollected: [...s.itemsCollected, itemId] }));
-    }
     state.checkAchievements();
   },
 

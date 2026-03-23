@@ -16,6 +16,7 @@ export function ShopScreen() {
   const inventory = useGameStore((s) => s.inventory);
   const buyItem = useGameStore((s) => s.buyItem);
   const sellItem = useGameStore((s) => s.sellItem);
+  const shopStock = useGameStore((s) => s.shopStock);
 
   const shop = SHOPS[currentMapId];
 
@@ -31,8 +32,8 @@ export function ShopScreen() {
       showMessage("ゴールドが足りない！");
       return;
     }
-    const shopItem = shop?.inventory.find((si) => si.itemId === itemId);
-    if (shopItem && shopItem.stock === 0) {
+    const stockCount = shopStock[currentMapId]?.[itemId] ?? -1;
+    if (stockCount === 0) {
       showMessage("在庫切れです！");
       return;
     }
@@ -61,7 +62,10 @@ export function ShopScreen() {
             もどる
           </button>
         </div>
-        <div className="panel" style={{ textAlign: "center", color: "var(--text-muted)" }}>
+        <div
+          className="panel"
+          style={{ textAlign: "center", color: "var(--text-muted)" }}
+        >
           このエリアにショップはありません
         </div>
       </div>
@@ -131,11 +135,15 @@ export function ShopScreen() {
 
       {/* Buy tab */}
       {tab === "buy" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
           {shop.inventory.map((si) => {
             const item = ITEMS[si.itemId];
             if (!item) return null;
-            const outOfStock = si.stock === 0;
+            const currentStock =
+              shopStock[currentMapId]?.[si.itemId] ?? si.stock;
+            const outOfStock = currentStock === 0;
             const cantAfford = gold < item.price;
             return (
               <div
@@ -173,13 +181,20 @@ export function ShopScreen() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: "0.9rem" }}>
                     {item.name}
-                    {si.stock >= 0 && (
-                      <span style={{ color: "var(--text-muted)", marginLeft: "0.4rem" }}>
-                        残{si.stock}
+                    {currentStock >= 0 && (
+                      <span
+                        style={{
+                          color: "var(--text-muted)",
+                          marginLeft: "0.4rem",
+                        }}
+                      >
+                        残{currentStock}
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                  <div
+                    style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}
+                  >
                     {item.description}
                   </div>
                 </div>
@@ -209,9 +224,14 @@ export function ShopScreen() {
 
       {/* Sell tab */}
       {tab === "sell" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
           {inventory.length === 0 ? (
-            <div className="panel" style={{ textAlign: "center", color: "var(--text-muted)" }}>
+            <div
+              className="panel"
+              style={{ textAlign: "center", color: "var(--text-muted)" }}
+            >
               売れるものがありません
             </div>
           ) : (
@@ -258,11 +278,17 @@ export function ShopScreen() {
                       {item.name}
                       {inv.count > 1 && (
                         <span style={{ color: "var(--text-muted)" }}>
-                          {" "}x{inv.count}
+                          {" "}
+                          x{inv.count}
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--text-muted)",
+                      }}
+                    >
                       {item.description}
                     </div>
                   </div>

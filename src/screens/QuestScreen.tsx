@@ -6,6 +6,7 @@ export function QuestScreen() {
   const navigate = useNavigate();
   const activeQuests = useGameStore((s) => s.activeQuests);
   const completedQuests = useGameStore((s) => s.completedQuests);
+  const questProgress = useGameStore((s) => s.questProgress);
 
   return (
     <div className="screen">
@@ -16,27 +17,53 @@ export function QuestScreen() {
         </button>
       </div>
 
-      <h3 style={{ color: "var(--warning)", marginBottom: "0.5rem", fontSize: "0.95rem" }}>
+      <h3
+        style={{
+          color: "var(--warning)",
+          marginBottom: "0.5rem",
+          fontSize: "0.95rem",
+        }}
+      >
         進行中のクエスト
       </h3>
       {activeQuests.length === 0 ? (
-        <div className="panel" style={{ color: "var(--text-muted)", marginBottom: "1rem" }}>
+        <div
+          className="panel"
+          style={{ color: "var(--text-muted)", marginBottom: "1rem" }}
+        >
           進行中のクエストはありません
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem",
+            marginBottom: "1rem",
+          }}
+        >
           {activeQuests.map((questId) => {
             const quest = QUESTS[questId];
             if (!quest) return null;
             return (
               <div key={questId} className="panel">
-                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.3rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    alignItems: "center",
+                    marginBottom: "0.3rem",
+                  }}
+                >
                   <span
                     style={{
                       fontSize: "0.7rem",
                       padding: "0.1rem 0.4rem",
                       borderRadius: 4,
-                      background: quest.type === "main" ? "var(--danger)" : "var(--accent)",
+                      background:
+                        quest.type === "main"
+                          ? "var(--danger)"
+                          : "var(--accent)",
                       color: "white",
                     }}
                   >
@@ -44,18 +71,26 @@ export function QuestScreen() {
                   </span>
                   <span style={{ fontSize: "0.95rem" }}>{quest.title}</span>
                 </div>
-                <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+                <p
+                  style={{
+                    fontSize: "0.8rem",
+                    color: "var(--text-secondary)",
+                    marginBottom: "0.5rem",
+                  }}
+                >
                   {quest.description}
                 </p>
                 <div style={{ fontSize: "0.8rem" }}>
-                  {quest.objectives.map((obj) => (
+                  {(questProgress[questId] ?? quest.objectives).map((obj) => (
                     <div
                       key={obj.id}
                       style={{
                         display: "flex",
                         gap: "0.3rem",
                         alignItems: "center",
-                        color: obj.completed ? "var(--success)" : "var(--text-primary)",
+                        color: obj.completed
+                          ? "var(--success)"
+                          : "var(--text-primary)",
                       }}
                     >
                       <span>{obj.completed ? "\u2705" : "\u2B1C"}</span>
@@ -67,8 +102,15 @@ export function QuestScreen() {
                     </div>
                   ))}
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--gold)", marginTop: "0.4rem" }}>
-                  報酬: {quest.rewards.exp}EXP / {quest.rewards.gold}G / 社会復帰+{quest.rewards.socialPoints}
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "var(--gold)",
+                    marginTop: "0.4rem",
+                  }}
+                >
+                  報酬: {quest.rewards.exp}EXP / {quest.rewards.gold}G /
+                  社会復帰+{quest.rewards.socialPoints}
                 </div>
               </div>
             );
@@ -76,7 +118,13 @@ export function QuestScreen() {
         </div>
       )}
 
-      <h3 style={{ color: "var(--success)", marginBottom: "0.5rem", fontSize: "0.95rem" }}>
+      <h3
+        style={{
+          color: "var(--success)",
+          marginBottom: "0.5rem",
+          fontSize: "0.95rem",
+        }}
+      >
         完了したクエスト ({completedQuests.length})
       </h3>
       {completedQuests.length === 0 ? (
@@ -84,7 +132,9 @@ export function QuestScreen() {
           まだクエストを完了していません
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}
+        >
           {completedQuests.map((questId) => {
             const quest = QUESTS[questId];
             if (!quest) return null;

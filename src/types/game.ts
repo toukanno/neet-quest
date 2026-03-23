@@ -155,12 +155,17 @@ export interface SaveData {
   socialPoints: number;
   completedQuests: string[];
   activeQuests: string[];
+  questProgress: Record<string, QuestObjective[]>;
   currentMapId: string;
   playerPosition: Position;
   playTime: number;
   chapter: number;
   day: number;
   unlockedAchievements: string[];
+  enemiesDefeated: number;
+  mapsVisited: string[];
+  itemsCollected: string[];
+  shopStock: Record<string, Record<string, number>>;
 }
 
 export interface Achievement {
@@ -172,7 +177,14 @@ export interface Achievement {
 }
 
 export interface AchievementCondition {
-  type: "level" | "social_points" | "gold" | "quests_completed" | "enemies_defeated" | "maps_visited" | "items_collected";
+  type:
+    | "level"
+    | "social_points"
+    | "gold"
+    | "quests_completed"
+    | "enemies_defeated"
+    | "maps_visited"
+    | "items_collected";
   value: number;
 }
 

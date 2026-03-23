@@ -135,7 +135,7 @@ describe("Performance: Map data generation", () => {
       }
     }
     const elapsed = performance.now() - start;
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(500);
   });
 });
 

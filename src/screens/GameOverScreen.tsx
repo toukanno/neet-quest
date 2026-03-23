@@ -6,23 +6,15 @@ export function GameOverScreen() {
   const loadGame = useGameStore((s) => s.loadGame);
 
   const handleLoadLastSave = () => {
-    // Find the most recent save across all slots
+    const saves = useGameStore.getState().getSaveSlots();
     let latestSlot: string | null = null;
     let latestTimestamp = 0;
-    for (let i = 1; i <= 3; i++) {
-      const raw = localStorage.getItem(`neetquest_save_slot${i}`);
-      if (raw) {
-        try {
-          const data = JSON.parse(raw);
-          if (data.timestamp > latestTimestamp) {
-            latestTimestamp = data.timestamp;
-            latestSlot = `slot${i}`;
-          }
-        } catch {
-          // ignore corrupt saves
-        }
+    saves.forEach((save, i) => {
+      if (save && save.timestamp > latestTimestamp) {
+        latestTimestamp = save.timestamp;
+        latestSlot = String(i + 1);
       }
-    }
+    });
     if (latestSlot) {
       loadGame(latestSlot);
       navigate("/game");

@@ -28,6 +28,7 @@ export function BattleScreen() {
   const playerUseItem = useGameStore((s) => s.playerUseItem);
   const playerFlee = useGameStore((s) => s.playerFlee);
   const endBattle = useGameStore((s) => s.endBattle);
+  const party = useGameStore((s) => s.party);
 
   const navigate = useNavigate();
   const [menu, setMenu] = useState<MenuState>("main");
@@ -149,6 +150,21 @@ export function BattleScreen() {
             </span>
           </div>
         </div>
+        {party.length > 0 && (
+          <div style={{ display: "flex", gap: "0.8rem", marginTop: "0.3rem", flexWrap: "wrap" }}>
+            {party.map((m) => (
+              <div key={m.id} style={{ fontSize: "0.7rem", opacity: m.hp <= 0 ? 0.4 : 1 }}>
+                <span style={{ color: "var(--accent)" }}>{m.name}</span>
+                <span style={{ color: "var(--hp-bar)", marginLeft: "0.3rem" }}>
+                  HP {m.hp}/{m.maxHp}
+                </span>
+                <span style={{ color: "var(--mp-bar)", marginLeft: "0.3rem" }}>
+                  MP {m.mp}/{m.maxMp}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {isBattleOver ? (

@@ -6,17 +6,84 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+
       - name: Install dependencies
         run: npm ci
+
       - name: Lint
         run: npm run lint
+
+      - name: Unit tests with coverage
+        run: npx vitest run --coverage --reporter=default --reporter=json --outputFile=test-results.json
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "## Test Coverage" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            node -e "
+              const c = require('./coverage/coverage-summary.json').total;
+              const fmt = (v) => v.pct + '%';
+              console.log('| Metric | Coverage |');
+              console.log('|--------|----------|');
+              console.log('| Statements | ' + fmt(c.statements) + ' |');
+              console.log('| Branches   | ' + fmt(c.branches) + ' |');
+              console.log('| Functions  | ' + fmt(c.functions) + ' |');
+              console.log('| Lines      | ' + fmt(c.lines) + ' |');
+            " >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Build
         run: npm run build
+
+      - name: Check bundle size
+        run: |
+          MAX_SIZE_KB=300
+          echo "## Bundle Size Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| File | Size (KB) | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-----------|--------|" >> "$GITHUB_STEP_SUMMARY"
+
+          HAS_WARNING=false
+          for f in dist/assets/*.js dist/assets/*.css; do
+            [ -f "$f" ] || continue
+            SIZE_BYTES=$(wc -c < "$f" | tr -d ' ')
+            SIZE_KB=$(( SIZE_BYTES / 1024 ))
+            BASENAME=$(basename "$f")
+
+            if [ "$SIZE_KB" -gt "$MAX_SIZE_KB" ]; then
+              echo "| $BASENAME | $SIZE_KB | :warning: exceeds ${MAX_SIZE_KB}KB |" >> "$GITHUB_STEP_SUMMARY"
+              echo "::warning file=$f::Bundle $BASENAME is ${SIZE_KB}KB (exceeds ${MAX_SIZE_KB}KB limit)"
+              HAS_WARNING=true
+            else
+              echo "| $BASENAME | $SIZE_KB | :white_check_mark: |" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+
+          if [ "$HAS_WARNING" = true ]; then
+            echo ""
+            echo ":warning: Some bundles exceed the ${MAX_SIZE_KB}KB size budget. Consider code splitting or lazy loading."  >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -163,7 +163,8 @@ describe("enemyTurn", () => {
   });
 
   it("sets phase to defeat when player HP reaches 0", () => {
-    // Use slime (always basic attack) to avoid flaky AI-based skill selection
+    // Mock random to ensure consistent damage (variance = 0.8 + 0.5*0.4 = 1.0)
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
     useGameStore.getState().startBattle(["slime_laziness"]);
     // Set player HP very low so any attack kills
     useGameStore.setState((s) => ({
@@ -173,6 +174,7 @@ describe("enemyTurn", () => {
     const state = useGameStore.getState();
     expect(state.player.hp).toBe(0);
     expect(state.battle!.phase).toBe("defeat");
+    vi.restoreAllMocks();
   });
 
   it("skips dead enemies", () => {

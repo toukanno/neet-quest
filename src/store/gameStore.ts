@@ -17,6 +17,7 @@ import { ENEMIES } from "@/data/enemies";
 import { ACHIEVEMENTS } from "@/data/achievements";
 import { SHOPS } from "@/data/shops";
 import { chooseEnemyAction } from "@/data/enemyAI";
+import { choosePartyActions } from "@/data/partyCombat";
 import type { GameTime, RandomEvent } from "@/data/events";
 import { advanceTime, checkRandomEvent } from "@/data/events";
 import { getSocialRank } from "@/data/endings";
@@ -120,6 +121,7 @@ interface GameState {
   playerSkill: (skillId: string, targetIndex: number) => void;
   playerUseItem: (itemId: string) => void;
   playerFlee: () => boolean;
+  partyTurn: () => void;
   enemyTurn: () => void;
   endBattle: () => void;
 
@@ -778,7 +780,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       // Trigger enemy turn after short delay
       setTimeout(() => {
-        if (get().battle) get().enemyTurn();
+        if (get().battle) get().partyTurn();
       }, 800);
       return {
         battle: { ...state.battle, enemies, log, phase: "enemy_turn" },
@@ -889,7 +891,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       setTimeout(() => {
-        if (get().battle) get().enemyTurn();
+        if (get().battle) get().partyTurn();
       }, 800);
       return {
         player: newPlayer,
@@ -913,7 +915,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           : null,
       }));
       setTimeout(() => {
-        if (get().battle) get().enemyTurn();
+        if (get().battle) get().partyTurn();
       }, 800);
     }
   },
@@ -942,9 +944,125 @@ export const useGameStore = create<GameState>((set, get) => ({
         : null,
     }));
     setTimeout(() => {
-      if (get().battle) get().enemyTurn();
+      if (get().battle) get().partyTurn();
     }, 800);
     return false;
+  },
+
+  partyTurn: () => {
+    const state = get();
+    if (!state.battle || state.party.length === 0) {
+      // No party members — go straight to enemy turn
+      setTimeout(() => { if (get().battle) get().enemyTurn(); }, 400);
+      return;
+    }
+
+    const actions = choosePartyActions({
+      player: { hp: state.player.hp, maxHp: state.player.maxHp },
+      party: state.party,
+      enemies: state.battle.enemies.map((e) => ({
+        hp: e.hp, maxHp: e.maxHp, defense: e.defense,
+      })),
+    });
+
+    const log = [...state.battle.log];
+    const enemies = [...state.battle.enemies];
+    let playerHp = state.player.hp;
+    const newParty = [...state.party];
+
+    for (const action of actions) {
+      if (action.type === "skill" && action.skillId) {
+        const member = newParty.find((m) => m.id === action.memberId);
+        if (!member) continue;
+        const skill = member.skills.find((s) => s.id === action.skillId);
+        if (!skill || member.mp < skill.mpCost) {
+          // Not enough MP — basic attack instead
+          const ti = action.targetIndex ?? 0;
+          if (enemies[ti] && enemies[ti].hp > 0) {
+            const dmg = Math.max(1, Math.floor((member.attack - enemies[ti].defense / 2) * (0.8 + Math.random() * 0.4)));
+            enemies[ti] = { ...enemies[ti], hp: Math.max(0, enemies[ti].hp - dmg) };
+            log.push(`${member.name}の攻撃！${enemies[ti].name}に${dmg}のダメージ！`);
+            if (enemies[ti].hp <= 0) log.push(`${enemies[ti].name}を倒した！`);
+          }
+          continue;
+        }
+
+        member.mp -= skill.mpCost;
+
+        if (action.targetAlly) {
+          // Targeting player or ally
+          if (skill.type === "heal") {
+            playerHp = Math.min(state.player.maxHp, playerHp + skill.power);
+            log.push(`${member.name}の${skill.name}！${state.player.name}のHPが${skill.power}回復！`);
+          } else if (skill.type === "buff") {
+            log.push(`${member.name}の${skill.name}！${state.player.name}の防御力が上がった！`);
+          }
+        } else {
+          // Targeting enemy
+          const ti = action.targetIndex ?? 0;
+          if (enemies[ti] && enemies[ti].hp > 0 && skill.type === "attack") {
+            const dmg = Math.max(1, Math.floor((member.attack + skill.power - enemies[ti].defense / 2) * (0.8 + Math.random() * 0.4)));
+            enemies[ti] = { ...enemies[ti], hp: Math.max(0, enemies[ti].hp - dmg) };
+            log.push(`${member.name}の${skill.name}！${enemies[ti].name}に${dmg}のダメージ！`);
+            if (enemies[ti].hp <= 0) {
+              log.push(`${enemies[ti].name}を倒した！`);
+              state.updateQuestProgress("defeat", enemies[ti].id.replace(/_\d+$/, ""));
+            }
+          }
+        }
+      } else {
+        // Basic attack
+        const ti = action.targetIndex ?? 0;
+        const member = newParty.find((m) => m.id === action.memberId);
+        if (!member || !enemies[ti] || enemies[ti].hp <= 0) continue;
+        const dmg = Math.max(1, Math.floor((member.attack - enemies[ti].defense / 2) * (0.8 + Math.random() * 0.4)));
+        enemies[ti] = { ...enemies[ti], hp: Math.max(0, enemies[ti].hp - dmg) };
+        log.push(`${member.name}の攻撃！${enemies[ti].name}に${dmg}のダメージ！`);
+        if (enemies[ti].hp <= 0) {
+          log.push(`${enemies[ti].name}を倒した！`);
+          state.updateQuestProgress("defeat", enemies[ti].id.replace(/_\d+$/, ""));
+        }
+      }
+    }
+
+    // Check if all enemies defeated
+    const aliveEnemies = enemies.filter((e) => e.hp > 0);
+    if (aliveEnemies.length === 0) {
+      const totalExp = state.battle.enemies.reduce((s, e) => s + e.exp, 0);
+      const totalGold = state.battle.enemies.reduce((s, e) => s + e.gold, 0);
+      log.push(`勝利！${totalExp}EXP と ${totalGold}G を獲得！`);
+      const battleEnemies = state.battle.enemies;
+      setTimeout(() => {
+        if (!get().battle) return;
+        const st = get();
+        st.gainExp(totalExp);
+        st.addGold(totalGold);
+        set((s) => ({ enemiesDefeated: s.enemiesDefeated + battleEnemies.length }));
+        for (const enemy of battleEnemies) {
+          for (const drop of enemy.drops) {
+            if (Math.random() < drop.rate) {
+              st.addItem(drop.itemId);
+            }
+          }
+        }
+        st.checkAchievements();
+      }, 100);
+      set({
+        player: { ...state.player, hp: playerHp },
+        party: newParty,
+        battle: { ...state.battle, enemies, log, phase: "victory" },
+      });
+      return;
+    }
+
+    set({
+      player: { ...state.player, hp: playerHp },
+      party: newParty,
+      battle: { ...state.battle, enemies, log },
+    });
+
+    // Then enemy turn
+    setTimeout(() => { if (get().battle) get().enemyTurn(); }, 600);
   },
 
   enemyTurn: () =>

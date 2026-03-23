@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGameStore } from "@/store/gameStore";
 import { ITEMS } from "@/data/items";
@@ -35,8 +35,7 @@ export function BattleScreen() {
 
   const isPlayerTurn =
     battle.phase === "start" || battle.phase === "player_turn";
-  const isBattleOver =
-    battle.phase === "victory" || battle.phase === "defeat";
+  const isBattleOver = battle.phase === "victory" || battle.phase === "defeat";
 
   const handleAttack = (targetIndex: number) => {
     playerAttack(targetIndex);
@@ -60,6 +59,13 @@ export function BattleScreen() {
     playerUseItem(itemId);
     setMenu("main");
   };
+
+  const logRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [battle.log.length]);
 
   const consumables = inventory.filter((inv) => {
     const item = ITEMS[inv.itemId];
@@ -99,7 +105,7 @@ export function BattleScreen() {
         ))}
       </div>
 
-      <div className="battle__log" id="battleLog">
+      <div className="battle__log" id="battleLog" ref={logRef}>
         {battle.log.map((msg, i) => (
           <p key={i}>{msg}</p>
         ))}
@@ -191,7 +197,10 @@ export function BattleScreen() {
                   {skill.name} ({skill.mpCost}MP)
                 </button>
               ))}
-              <button className="btn btn--small" onClick={() => setMenu("main")}>
+              <button
+                className="btn btn--small"
+                onClick={() => setMenu("main")}
+              >
                 もどる
               </button>
             </>
@@ -215,18 +224,30 @@ export function BattleScreen() {
                   </button>
                 );
               })}
-              <button className="btn btn--small" onClick={() => setMenu("main")}>
+              <button
+                className="btn btn--small"
+                onClick={() => setMenu("main")}
+              >
                 もどる
               </button>
             </>
           )}
           {menu === "target" && (
-            <div style={{ gridColumn: "1 / -1", textAlign: "center", color: "var(--warning)" }}>
+            <div
+              style={{
+                gridColumn: "1 / -1",
+                textAlign: "center",
+                color: "var(--warning)",
+              }}
+            >
               ターゲットを選んでください（敵をクリック）
               <button
                 className="btn btn--small"
                 style={{ marginLeft: "1rem" }}
-                onClick={() => { setMenu("main"); setSelectedSkill(null); }}
+                onClick={() => {
+                  setMenu("main");
+                  setSelectedSkill(null);
+                }}
               >
                 キャンセル
               </button>
@@ -235,7 +256,13 @@ export function BattleScreen() {
         </div>
       ) : (
         <div className="battle__actions">
-          <span style={{ gridColumn: "1 / -1", textAlign: "center", color: "var(--text-muted)" }}>
+          <span
+            style={{
+              gridColumn: "1 / -1",
+              textAlign: "center",
+              color: "var(--text-muted)",
+            }}
+          >
             敵のターン...
           </span>
         </div>

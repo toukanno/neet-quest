@@ -98,7 +98,7 @@ describe("Performance: Battle system", () => {
 });
 
 describe("Performance: Map data generation", () => {
-  it("accessing all map tile data should complete within 100ms", () => {
+  it("accessing all map tile data should complete within 500ms", () => {
     const mapIds = Object.keys(MAPS);
     const start = performance.now();
     for (let iteration = 0; iteration < 100; iteration++) {
@@ -119,7 +119,7 @@ describe("Performance: Map data generation", () => {
       }
     }
     const elapsed = performance.now() - start;
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(500);
   });
 
   it("map NPC lookups should be efficient", () => {

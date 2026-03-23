@@ -163,8 +163,9 @@ describe("enemyTurn", () => {
   });
 
   it("sets phase to defeat when player HP reaches 0", () => {
-    useGameStore.getState().startBattle(["boss_black_company"]);
-    // Set player HP very low
+    // Use slime (always basic attack) to avoid flaky AI-based skill selection
+    useGameStore.getState().startBattle(["slime_laziness"]);
+    // Set player HP very low so any attack kills
     useGameStore.setState((s) => ({
       player: { ...s.player, hp: 1, defense: 0 },
     }));
@@ -182,7 +183,7 @@ describe("enemyTurn", () => {
         ? {
             ...s.battle,
             enemies: s.battle.enemies.map((e, i) =>
-              i === 0 ? { ...e, hp: 0 } : e
+              i === 0 ? { ...e, hp: 0 } : e,
             ),
           }
         : null,

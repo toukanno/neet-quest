@@ -175,9 +175,14 @@ function decideBossBlackCompany(
 export function chooseEnemyAction(
   enemy: Enemy,
   player: PlayerSnapshot,
-  battleState: EnemyBattleState = { turnCount: 1, currentHp: enemy.hp, maxHp: enemy.maxHp },
+  battleState: EnemyBattleState = {
+    turnCount: 1,
+    currentHp: enemy.hp,
+    maxHp: enemy.maxHp,
+  },
 ): EnemyAction {
-  switch (enemy.id) {
+  const baseId = enemy.id.replace(/_\d+$/, "");
+  switch (baseId) {
     case "slime_laziness":
     case "bat_anxiety":
       return decideSlimeOrBat();

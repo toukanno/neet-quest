@@ -23,7 +23,7 @@ describe("acceptQuest - sub quest acceptance", () => {
     // sub_convenience requires main_2 to be completed
     useGameStore.getState().acceptQuest("sub_convenience");
     expect(useGameStore.getState().activeQuests).not.toContain(
-      "sub_convenience"
+      "sub_convenience",
     );
   });
 
@@ -56,7 +56,7 @@ describe("acceptQuest - prerequisite chain", () => {
   it("does not accept non-existent quest", () => {
     useGameStore.getState().acceptQuest("non_existent_quest");
     expect(useGameStore.getState().activeQuests).not.toContain(
-      "non_existent_quest"
+      "non_existent_quest",
     );
   });
 });
@@ -79,8 +79,8 @@ describe("completeQuest - reward accumulation", () => {
     const spBefore = useGameStore.getState().socialPoints;
     useGameStore.getState().completeQuest("sub_exercise");
     const state = useGameStore.getState();
-    // sub_exercise rewards: exp:80, gold:50, socialPoints:10, items:["protein"]
-    expect(state.gold).toBe(goldBefore + 50);
+    // sub_exercise rewards: exp:80, gold:100, socialPoints:10, items:["protein"]
+    expect(state.gold).toBe(goldBefore + 100);
     expect(state.socialPoints).toBe(spBefore + 10);
     expect(state.completedQuests).toContain("sub_exercise");
     expect(state.activeQuests).not.toContain("sub_exercise");

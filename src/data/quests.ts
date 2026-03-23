@@ -4,7 +4,8 @@ export const QUESTS: Record<string, Quest> = {
   main_1: {
     id: "main_1",
     title: "部屋から出よう",
-    description: "まずは自分の部屋から出ることから始めよう。お母さんが朝ごはんを作って待っている。",
+    description:
+      "まずは自分の部屋から出ることから始めよう。お母さんが朝ごはんを作って待っている。",
     type: "main",
     chapter: 1,
     objectives: [
@@ -70,7 +71,8 @@ export const QUESTS: Record<string, Quest> = {
   main_3: {
     id: "main_3",
     title: "ハローワークへの道",
-    description: "お母さんに言われてハローワークに行くことに。不安コウモリが行く手を阻む。",
+    description:
+      "お母さんに言われてハローワークに行くことに。不安コウモリが行く手を阻む。",
     type: "main",
     chapter: 2,
     objectives: [
@@ -113,7 +115,8 @@ export const QUESTS: Record<string, Quest> = {
   main_4: {
     id: "main_4",
     title: "面接ダンジョン攻略",
-    description: "いよいよ面接！面接官ゴーレムが立ちはだかる。自分の言葉で戦え！",
+    description:
+      "いよいよ面接！面接官ゴーレムが立ちはだかる。自分の言葉で戦え！",
     type: "main",
     chapter: 3,
     objectives: [
@@ -136,7 +139,12 @@ export const QUESTS: Record<string, Quest> = {
         completed: false,
       },
     ],
-    rewards: { exp: 200, gold: 500, items: ["business_suit"], socialPoints: 30 },
+    rewards: {
+      exp: 200,
+      gold: 500,
+      items: ["business_suit"],
+      socialPoints: 30,
+    },
     prerequisiteQuestId: "main_3",
   },
   sub_convenience: {
@@ -194,7 +202,7 @@ export const QUESTS: Record<string, Quest> = {
         completed: false,
       },
     ],
-    rewards: { exp: 80, gold: 50, items: ["protein"], socialPoints: 10 },
+    rewards: { exp: 80, gold: 100, items: ["protein"], socialPoints: 10 },
   },
   main_5: {
     id: "main_5",
@@ -224,7 +232,7 @@ export const QUESTS: Record<string, Quest> = {
       },
     ],
     rewards: {
-      exp: 300,
+      exp: 350,
       gold: 800,
       items: ["breathing_manual"],
       socialPoints: 40,
@@ -307,7 +315,7 @@ export const QUESTS: Record<string, Quest> = {
         completed: false,
       },
     ],
-    rewards: { exp: 120, gold: 200, items: ["sneakers"], socialPoints: 15 },
+    rewards: { exp: 120, gold: 250, items: ["sneakers"], socialPoints: 15 },
     prerequisiteQuestId: "sub_exercise",
   },
   sub_night_walk: {
@@ -337,6 +345,6 @@ export const QUESTS: Record<string, Quest> = {
         completed: false,
       },
     ],
-    rewards: { exp: 90, gold: 150, items: ["earphones"], socialPoints: 10 },
+    rewards: { exp: 90, gold: 180, items: ["earphones"], socialPoints: 10 },
   },
 };

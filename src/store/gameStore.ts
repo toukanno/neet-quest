@@ -704,6 +704,17 @@ export const useGameStore = create<GameState>((set, get) => ({
         state.acceptQuest(id);
       }
     }
+    // Auto-advance chapter based on next quest
+    const nextMainQuests = Object.values(QUESTS).filter(
+      (q) => q.type === "main" && q.prerequisiteQuestId === questId
+    );
+    if (nextMainQuests.length > 0 && nextMainQuests[0].chapter > get().chapter) {
+      set({ chapter: nextMainQuests[0].chapter });
+    }
+    if (quest.type === "main" && nextMainQuests.length === 0) {
+      set({ chapter: Math.max(get().chapter, quest.chapter) });
+      setTimeout(() => get().checkEnding(), 0);
+    }
     state.checkAchievements();
   },
 

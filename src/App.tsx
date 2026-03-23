@@ -13,10 +13,12 @@ import { AchievementsScreen } from "@/screens/AchievementsScreen";
 import { TutorialOverlay } from "@/components/TutorialOverlay";
 import { AchievementToast } from "@/components/AchievementToast";
 import { EndingScreen } from "@/screens/EndingScreen";
+import { GameOverScreen } from "@/screens/GameOverScreen";
 import { EventOverlay } from "@/components/EventOverlay";
 
 export function App() {
   const battle = useGameStore((s) => s.battle);
+  const player = useGameStore((s) => s.player);
   const currentEnding = useGameStore((s) => s.currentEnding);
   const tutorialStep = useGameStore((s) => s.tutorialStep);
 
@@ -24,6 +26,14 @@ export function App() {
     return (
       <div className="app">
         <EndingScreen />
+      </div>
+    );
+  }
+
+  if (!battle && player.hp <= 0) {
+    return (
+      <div className="app">
+        <GameOverScreen />
       </div>
     );
   }
